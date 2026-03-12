@@ -1,990 +1,561 @@
-// Stick figure SVG poses for each exercise figure type
-const POSES = {
-  // ─── STANDING / GENERAL ─────────────────────────────────────────
-  standing_arms_out: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="28" x2="50" y2="80" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <line x1="50" y1="45" x2="15" y2="65" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <line x1="50" y1="45" x2="85" y2="65" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <line x1="50" y1="80" x2="30" y2="120" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <line x1="50" y1="80" x2="70" y2="120" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <line x1="30" y1="120" x2="25" y2="150" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <line x1="70" y1="120" x2="75" y2="150" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  circle_motion: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="28" x2="50" y2="80" stroke="currentColor" stroke-width="3"/>
-      <path d="M50 45 Q80 30 85 55" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <path d="M50 45 Q20 30 15 55" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <path d="M85 55 Q90 70 75 75" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <line x1="50" y1="80" x2="30" y2="120" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="80" x2="70" y2="120" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="120" x2="25" y2="150" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="120" x2="75" y2="150" stroke="currentColor" stroke-width="3"/>
-      <text x="82" y="60" font-size="14" fill="currentColor">↻</text>
-    </svg>`,
-    color: "#e8ff47"
-  },
+// poses.js — Realistic animated SVG exercise figures
+// Each pose uses proportioned body with SMIL animations showing movement
 
-  // ─── PUSH-UPS ────────────────────────────────────────────────────
-  pushup_top: {
-    svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="30" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="29" x2="30" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="40" x2="10" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="40" x2="50" y2="58" stroke="currentColor" stroke-width="3"/>
-      <circle cx="10" cy="62" r="4" fill="currentColor" opacity="0.5"/>
-      <circle cx="50" cy="62" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="30" y1="55" x2="50" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="58" x2="70" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="60" x2="90" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="90" y1="58" x2="100" y2="65" stroke="currentColor" stroke-width="3"/>
-      <circle cx="103" cy="68" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="100" y1="65" x2="110" y2="62" stroke="currentColor" stroke-width="3"/>
-      <circle cx="113" cy="62" r="4" fill="currentColor" opacity="0.5"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  pushup_bottom: {
-    svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="25" cy="35" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="25" y1="44" x2="35" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="52" x2="15" y2="68" stroke="currentColor" stroke-width="3"/>
-      <circle cx="12" cy="71" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="30" y1="52" x2="48" y2="68" stroke="currentColor" stroke-width="3"/>
-      <circle cx="50" cy="71" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="35" y1="62" x2="55" y2="63" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="63" x2="75" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="62" x2="95" y2="63" stroke="currentColor" stroke-width="3"/>
-      <line x1="95" y1="63" x2="105" y2="70" stroke="currentColor" stroke-width="3"/>
-      <circle cx="107" cy="73" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="105" y1="70" x2="115" y2="67" stroke="currentColor" stroke-width="3"/>
-      <circle cx="118" cy="67" r="4" fill="currentColor" opacity="0.5"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
+!function(){
+// ── Micro helpers ──────────────────────────────────────────────────────────
+const L=(x1,y1,x2,y2,w)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const C=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="currentColor" opacity="0.9"/>`;
+// Dumbbell at (x,y) horizontal
+const DB=(x,y)=>`<g opacity="0.75"><rect x="${x-9}" y="${y-3}" width="18" height="6" rx="3" fill="currentColor"/><rect x="${x-14}" y="${y-5}" width="5" height="10" rx="2" fill="currentColor"/><rect x="${x+9}" y="${y-5}" width="5" height="10" rx="2" fill="currentColor"/></g>`;
+// Dumbbell vertical at (x,y)
+const DBV=(x,y)=>`<g opacity="0.75"><rect x="${x-3}" y="${y-9}" width="6" height="18" rx="3" fill="currentColor"/><rect x="${x-5}" y="${y-13}" width="10" height="5" rx="2" fill="currentColor"/><rect x="${x-5}" y="${y+8}" width="10" height="5" rx="2" fill="currentColor"/></g>`;
+// SMIL rotation anim around (cx,cy) from a→b→a
+const RA=(cx,cy,a,b,dur)=>`<animateTransform attributeName="transform" type="rotate" values="${a} ${cx} ${cy};${b} ${cx} ${cy};${a} ${cx} ${cy}" keyTimes="0;0.5;1" dur="${dur||'2.5s'}" repeatCount="indefinite" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1"/>`;
+// SMIL translate anim
+const TA=(dx,dy,dur)=>`<animateTransform attributeName="transform" type="translate" values="0 0;${dx} ${dy};0 0" keyTimes="0;0.5;1" dur="${dur||'2.5s'}" repeatCount="indefinite" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1" additive="sum"/>`;
 
-  // ─── HANG ────────────────────────────────────────────────────────
-  hang_passive: {
-    svg: `<svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-      <line x1="50" y1="8" x2="40" y2="28" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="8" x2="80" y2="28" stroke="currentColor" stroke-width="3"/>
-      <circle cx="60" cy="45" r="12" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="57" x2="60" y2="105" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="70" x2="40" y2="30" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="70" x2="80" y2="30" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="105" x2="45" y2="150" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="105" x2="75" y2="150" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="150" x2="42" y2="175" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="150" x2="78" y2="175" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  hang_active: {
-    svg: `<svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-      <line x1="50" y1="8" x2="42" y2="26" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="8" x2="78" y2="26" stroke="currentColor" stroke-width="3"/>
-      <circle cx="60" cy="40" r="12" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="52" x2="60" y2="100" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="62" x2="42" y2="28" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="62" x2="78" y2="28" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="52" x2="65" y2="52" stroke="currentColor" stroke-width="2" opacity="0.5"/>
-      <line x1="60" y1="100" x2="45" y2="145" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="100" x2="75" y2="145" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="145" x2="42" y2="170" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="145" x2="78" y2="170" stroke="currentColor" stroke-width="3"/>
-      <text x="72" y="65" font-size="11" fill="currentColor" opacity="0.8">↑↓</text>
-    </svg>`,
-    color: "#47c8ff"
-  },
+// ── Standing base (120×200) ────────────────────────────────────────────────
+// Head(60,16) Torso(60,36-92) Hips(48,92-72,92)
+// thighL(52,92-46,140) calfL(46,140-42,182) ftL(30,182-52,182)
+// thighR(68,92-74,140) calfR(74,140-78,182) ftR(68,182-90,182)
+const LEGS_STD = ()=>`${L(52,92,46,140,9)}${L(46,140,42,182,7)}${L(68,92,74,140,9)}${L(74,140,78,182,7)}${L(30,182,52,182,5)}${L(68,182,90,182,5)}`;
+const TORSO_STD = ()=>`${C(60,16,11)}${L(60,27,60,36,5)}${L(60,36,60,92,11)}${L(48,92,72,92,8)}`;
 
-  // ─── PULL-UPS ───────────────────────────────────────────────────
-  pullup_hang: {
-    svg: `<svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="4"/>
-      <line x1="48" y1="8" x2="40" y2="28" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="8" x2="80" y2="28" stroke="currentColor" stroke-width="3"/>
-      <circle cx="60" cy="44" r="12" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="56" x2="60" y2="104" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="70" x2="40" y2="30" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="70" x2="80" y2="30" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="104" x2="45" y2="148" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="104" x2="75" y2="148" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="148" x2="42" y2="172" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="148" x2="78" y2="172" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  pullup_mid: {
-    svg: `<svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="4"/>
-      <line x1="48" y1="8" x2="44" y2="22" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="8" x2="76" y2="22" stroke="currentColor" stroke-width="3"/>
-      <circle cx="60" cy="35" r="12" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="47" x2="60" y2="92" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="60" x2="44" y2="24" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="60" x2="76" y2="24" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="92" x2="44" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="92" x2="76" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="130" x2="40" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="130" x2="80" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  pullup_top: {
-    svg: `<svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="4"/>
-      <line x1="48" y1="8" x2="46" y2="16" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="8" x2="74" y2="16" stroke="currentColor" stroke-width="3"/>
-      <circle cx="60" cy="25" r="11" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="36" x2="60" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="50" x2="46" y2="18" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="50" x2="74" y2="18" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="80" x2="45" y2="118" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="80" x2="75" y2="118" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="118" x2="42" y2="143" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="118" x2="78" y2="143" stroke="currentColor" stroke-width="3"/>
-      <line x1="20" y1="8" x2="18" y2="14" stroke="currentColor" stroke-width="2" opacity="0.4"/>
-      <line x1="18" y1="14" x2="22" y2="16" stroke="currentColor" stroke-width="2" opacity="0.4"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  chinup_hang: {
-    svg: `<svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="4"/>
-      <line x1="48" y1="8" x2="40" y2="28" stroke="currentColor" stroke-width="3" stroke-dasharray="4 2"/>
-      <line x1="72" y1="8" x2="80" y2="28" stroke="currentColor" stroke-width="3" stroke-dasharray="4 2"/>
-      <circle cx="60" cy="44" r="12" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="56" x2="60" y2="104" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="70" x2="40" y2="30" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="70" x2="80" y2="30" stroke="currentColor" stroke-width="3"/>
-      <text x="32" y="36" font-size="9" fill="currentColor" opacity="0.7">↙palms</text>
-      <line x1="60" y1="104" x2="45" y2="148" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="104" x2="75" y2="148" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="148" x2="42" y2="172" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="148" x2="78" y2="172" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  chinup_top: {
-    svg: `<svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="4"/>
-      <circle cx="60" cy="24" r="11" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="8" x2="46" y2="15" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="8" x2="74" y2="15" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="35" x2="60" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="50" x2="46" y2="17" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="50" x2="74" y2="17" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="80" x2="44" y2="118" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="80" x2="76" y2="118" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="118" x2="40" y2="143" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="118" x2="80" y2="143" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
+// ── Standard standing figure with given arm coords ────────────────────────
+const S=(shLx,shLy,elLx,elLy,wrLx,wrLy,shRx,shRy,elRx,elRy,wrRx,wrRy,extra='')=>
+  `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}${LEGS_STD()}
+  ${L(shLx,shLy,elLx,elLy,8)}${L(elLx,elLy,wrLx,wrLy,6)}
+  ${L(shRx,shRy,elRx,elRy,8)}${L(elRx,elRy,wrRx,wrRy,6)}
+  ${extra}</svg>`;
 
-  // ─── FLOOR PRESS ─────────────────────────────────────────────────
-  floor_press_top: {
-    svg: `<svg viewBox="0 0 180 80" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="72" x2="170" y2="72" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-      <circle cx="50" cy="30" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="40" x2="100" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="48" x2="45" y2="20" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="20" x2="20" y2="20" stroke="currentColor" stroke-width="3"/>
-      <circle cx="17" cy="20" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="70" y1="48" x2="95" y2="20" stroke="currentColor" stroke-width="3"/>
-      <line x1="95" y1="20" x2="120" y2="20" stroke="currentColor" stroke-width="3"/>
-      <circle cx="123" cy="20" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="100" y1="60" x2="130" y2="65" stroke="currentColor" stroke-width="3"/>
-      <line x1="100" y1="60" x2="75" y2="68" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  floor_press_bottom: {
-    svg: `<svg viewBox="0 0 180 80" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="72" x2="170" y2="72" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-      <circle cx="50" cy="28" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="38" x2="100" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="48" x2="35" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="62" x2="10" y2="60" stroke="currentColor" stroke-width="3"/>
-      <circle cx="7" cy="60" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="70" y1="48" x2="105" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="105" y1="62" x2="130" y2="60" stroke="currentColor" stroke-width="3"/>
-      <circle cx="133" cy="60" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="100" y1="60" x2="130" y2="65" stroke="currentColor" stroke-width="3"/>
-      <line x1="100" y1="60" x2="75" y2="68" stroke="currentColor" stroke-width="3"/>
-      <text x="55" y="18" font-size="9" fill="currentColor" opacity="0.7">elbows floor</text>
-    </svg>`,
-    color: "#e8ff47"
-  },
+// Wide standing (160×200) for arms spread
+const SW=(shLx,shLy,elLx,elLy,wrLx,wrLy,shRx,shRy,elRx,elRy,wrRx,wrRy,extra='')=>
+  `<svg viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
+  ${C(80,16,11)}${L(80,27,80,36,5)}${L(80,36,80,92,11)}${L(68,92,92,92,8)}
+  ${L(72,92,66,140,9)}${L(66,140,62,182,7)}${L(88,92,94,140,9)}${L(94,140,98,182,7)}
+  ${L(50,182,72,182,5)}${L(88,182,110,182,5)}
+  ${L(shLx,shLy,elLx,elLy,8)}${L(elLx,elLy,wrLx,wrLy,6)}
+  ${L(shRx,shRy,elRx,elRy,8)}${L(elRx,elRy,wrRx,wrRy,6)}
+  ${extra}</svg>`;
 
-  // ─── ARNOLD PRESS ────────────────────────────────────────────────
-  arnold_start: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="31" x2="60" y2="90" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="50" x2="30" y2="65" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="65" x2="38" y2="42" stroke="currentColor" stroke-width="3"/>
-      <circle cx="38" cy="38" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="50" x2="90" y2="65" stroke="currentColor" stroke-width="3"/>
-      <line x1="90" y1="65" x2="82" y2="42" stroke="currentColor" stroke-width="3"/>
-      <circle cx="82" cy="38" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="18" y="75" font-size="9" fill="currentColor" opacity="0.8">palms→you</text>
-      <line x1="60" y1="90" x2="45" y2="135" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="90" x2="75" y2="135" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="135" x2="42" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="135" x2="78" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  arnold_mid: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="31" x2="60" y2="90" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="50" x2="25" y2="50" stroke="currentColor" stroke-width="3"/>
-      <line x1="25" y1="50" x2="20" y2="28" stroke="currentColor" stroke-width="3"/>
-      <circle cx="19" cy="24" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="50" x2="95" y2="50" stroke="currentColor" stroke-width="3"/>
-      <line x1="95" y1="50" x2="100" y2="28" stroke="currentColor" stroke-width="3"/>
-      <circle cx="101" cy="24" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="25" y="62" font-size="9" fill="currentColor" opacity="0.8">rotating...</text>
-      <line x1="60" y1="90" x2="45" y2="135" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="90" x2="75" y2="135" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="135" x2="42" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="135" x2="78" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  arnold_top: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="31" x2="60" y2="90" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="50" x2="35" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="40" x2="30" y2="10" stroke="currentColor" stroke-width="3"/>
-      <circle cx="29" cy="6" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="50" x2="85" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="40" x2="90" y2="10" stroke="currentColor" stroke-width="3"/>
-      <circle cx="91" cy="6" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="32" y="55" font-size="9" fill="currentColor" opacity="0.8">palms→fwd</text>
-      <line x1="60" y1="90" x2="45" y2="135" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="90" x2="75" y2="135" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="135" x2="42" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="135" x2="78" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
+window.POSES = {
 
-  // ─── LATERAL RAISE ───────────────────────────────────────────────
-  lateral_start: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="28" x2="60" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="45" x2="40" y2="82" stroke="currentColor" stroke-width="3"/>
-      <circle cx="38" cy="85" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="45" x2="80" y2="82" stroke="currentColor" stroke-width="3"/>
-      <circle cx="82" cy="85" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="85" x2="44" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="85" x2="76" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="130" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="130" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  lateral_top: {
-    svg: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="80" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="80" y1="28" x2="80" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="80" y1="45" x2="20" y2="48" stroke="currentColor" stroke-width="3"/>
-      <circle cx="15" cy="48" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="80" y1="45" x2="140" y2="48" stroke="currentColor" stroke-width="3"/>
-      <circle cx="145" cy="48" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="80" y1="80" x2="65" y2="110" stroke="currentColor" stroke-width="3"/>
-      <line x1="80" y1="80" x2="95" y2="110" stroke="currentColor" stroke-width="3"/>
-      <text x="10" y="40" font-size="9" fill="currentColor" opacity="0.7">T-shape</text>
-    </svg>`,
-    color: "#e8ff47"
-  },
+// ── JOINT CIRCLES / WARMUP ────────────────────────────────────────────────
+standing_arms_out: { svg: S(
+  42,46, 10,65, 4,90,
+  78,46,110,65,116,90) },
 
-  // ─── DIAMOND PUSH-UPS ────────────────────────────────────────────
-  diamond_top: {
-    svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="72" x2="150" y2="72" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-      <circle cx="30" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="29" x2="30" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="40" x2="52" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="52" y1="55" x2="60" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="58" x2="68" y2="55" stroke="currentColor" stroke-width="3"/>
-      <polygon points="52,55 60,50 68,55 60,62" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6"/>
-      <text x="55" y="47" font-size="8" fill="currentColor" opacity="0.8">◆</text>
-      <line x1="30" y1="40" x2="10" y2="58" stroke="currentColor" stroke-width="3"/>
-      <circle cx="7" cy="61" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="30" y1="55" x2="50" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="68" y1="55" x2="100" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="100" y1="58" x2="120" y2="55" stroke="currentColor" stroke-width="3"/>
-      <circle cx="123" cy="55" r="4" fill="currentColor" opacity="0.5"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  diamond_bottom: {
-    svg: `<svg viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="72" x2="150" y2="72" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-      <circle cx="28" cy="35" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="28" y1="44" x2="35" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="32" y1="52" x2="52" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="52" y1="60" x2="60" y2="63" stroke="currentColor" stroke-width="3"/>
-      <polygon points="52,60 60,55 68,60 60,67" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6"/>
-      <line x1="32" y1="52" x2="14" y2="68" stroke="currentColor" stroke-width="3"/>
-      <circle cx="11" cy="71" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="68" y1="60" x2="100" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="100" y1="62" x2="120" y2="60" stroke="currentColor" stroke-width="3"/>
-      <circle cx="123" cy="60" r="4" fill="currentColor" opacity="0.5"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
+circle_motion: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}${LEGS_STD()}
+  <g>${RA(42,46,-5,35,'3s')}${L(42,46,10,65,8)}${L(10,65,4,90,6)}</g>
+  <g>${RA(78,46,-35,5,'3s')}${L(78,46,110,65,8)}${L(110,65,116,90,6)}</g>
+  <path d="M8 88 Q-2 70 8 54" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3" opacity="0.5"/>
+  <path d="M112 88 Q122 70 112 54" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3" opacity="0.5"/>
+</svg>` },
 
-  // ─── KICKBACK ────────────────────────────────────────────────────
-  kickback_start: {
-    svg: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="35" cy="35" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="45" x2="85" y2="65" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="53" x2="35" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="40" x2="18" y2="60" stroke="currentColor" stroke-width="3"/>
-      <circle cx="15" cy="63" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="55" y1="53" x2="75" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="40" x2="75" y2="65" stroke="currentColor" stroke-width="3"/>
-      <circle cx="75" cy="68" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="85" y1="65" x2="110" y2="75" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="65" x2="70" y2="100" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="100" x2="65" y2="115" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  kickback_end: {
-    svg: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="35" cy="35" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="45" x2="85" y2="65" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="53" x2="35" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="40" x2="18" y2="60" stroke="currentColor" stroke-width="3"/>
-      <circle cx="15" cy="63" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="55" y1="53" x2="75" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="40" x2="130" y2="42" stroke="currentColor" stroke-width="3"/>
-      <circle cx="133" cy="42" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="95" y="35" font-size="9" fill="currentColor" opacity="0.8">squeeze!</text>
-      <line x1="85" y1="65" x2="110" y2="75" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="65" x2="70" y2="100" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="100" x2="65" y2="115" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
+arm_swing: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}${LEGS_STD()}
+  <g>${RA(42,46,-40,20,'2s')}${L(42,46,20,68,8)}${L(20,68,14,94,6)}</g>
+  <g>${RA(78,46,-20,40,'2s')}${L(78,46,100,68,8)}${L(100,68,106,94,6)}</g>
+</svg>` },
 
-  // ─── WRIST CURLS ─────────────────────────────────────────────────
-  wrist_curl_start: {
-    svg: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="80" x2="130" y2="80" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-      <circle cx="50" cy="30" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="40" x2="60" y2="70" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="55" x2="30" y2="52" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="52" x2="20" y2="68" stroke="currentColor" stroke-width="3"/>
-      <line x1="20" y1="68" x2="18" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="18" y1="80" x2="8" y2="82" stroke="currentColor" stroke-width="3"/>
-      <circle cx="5" cy="82" r="4" fill="currentColor" opacity="0.6"/>
-      <line x1="55" y1="55" x2="80" y2="52" stroke="currentColor" stroke-width="3"/>
-      <line x1="80" y1="52" x2="100" y2="70" stroke="currentColor" stroke-width="3"/>
-      <line x1="100" y1="70" x2="105" y2="80" stroke="currentColor" stroke-width="3"/>
-      <circle cx="108" cy="83" r="4" fill="currentColor" opacity="0.6"/>
-      <text x="70" y="88" font-size="9" fill="currentColor" opacity="0.8">wrist drops</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  wrist_curl_end: {
-    svg: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="80" x2="130" y2="80" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-      <circle cx="50" cy="30" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="40" x2="60" y2="70" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="55" x2="30" y2="52" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="52" x2="20" y2="68" stroke="currentColor" stroke-width="3"/>
-      <line x1="20" y1="68" x2="16" y2="78" stroke="currentColor" stroke-width="3"/>
-      <line x1="16" y1="78" x2="5" y2="70" stroke="currentColor" stroke-width="3"/>
-      <circle cx="3" cy="67" r="4" fill="currentColor" opacity="0.6"/>
-      <line x1="55" y1="55" x2="80" y2="52" stroke="currentColor" stroke-width="3"/>
-      <line x1="80" y1="52" x2="100" y2="68" stroke="currentColor" stroke-width="3"/>
-      <line x1="100" y1="68" x2="106" y2="78" stroke="currentColor" stroke-width="3"/>
-      <line x1="106" y1="78" x2="117" y2="70" stroke="currentColor" stroke-width="3"/>
-      <circle cx="119" cy="67" r="4" fill="currentColor" opacity="0.6"/>
-      <text x="68" y="88" font-size="9" fill="currentColor" opacity="0.8">squeeze!</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  reverse_curl_start: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="28" x2="60" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="35" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="80" x2="32" y2="105" stroke="currentColor" stroke-width="3"/>
-      <circle cx="31" cy="108" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="48" x2="85" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="80" x2="88" y2="105" stroke="currentColor" stroke-width="3"/>
-      <circle cx="89" cy="108" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="85" x2="44" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="85" x2="76" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="130" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="130" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-      <text x="26" y="120" font-size="9" fill="currentColor" opacity="0.7">knuckles↓</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  reverse_curl_end: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="28" x2="60" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="35" y2="75" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="75" x2="38" y2="48" stroke="currentColor" stroke-width="3"/>
-      <circle cx="39" cy="45" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="48" x2="85" y2="75" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="75" x2="82" y2="48" stroke="currentColor" stroke-width="3"/>
-      <circle cx="81" cy="45" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="30" y="42" font-size="9" fill="currentColor" opacity="0.8">knuckles↑</text>
-      <line x1="60" y1="85" x2="44" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="85" x2="76" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="130" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="130" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  grip_open: {
-    svg: `<svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
-      <line x1="40" y1="10" x2="40" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="20" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="25" y2="70" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="30" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="38" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="55" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="20" y1="60" x2="16" y2="75" stroke="currentColor" stroke-width="3"/>
-      <line x1="25" y1="70" x2="21" y2="84" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="80" x2="27" y2="94" stroke="currentColor" stroke-width="3"/>
-      <line x1="38" y1="85" x2="36" y2="99" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="82" x2="57" y2="96" stroke="currentColor" stroke-width="3"/>
-      <text x="15" y="112" font-size="10" fill="currentColor" opacity="0.7">open hand</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  grip_closed: {
-    svg: `<svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
-      <line x1="40" y1="10" x2="40" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="20" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="22" y2="65" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="25" y2="73" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="32" y2="78" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="55" x2="50" y2="75" stroke="currentColor" stroke-width="3"/>
-      <line x1="20" y1="58" x2="22" y2="70" stroke="currentColor" stroke-width="3"/>
-      <line x1="22" y1="65" x2="25" y2="76" stroke="currentColor" stroke-width="3"/>
-      <line x1="25" y1="73" x2="28" y2="83" stroke="currentColor" stroke-width="3"/>
-      <line x1="32" y1="78" x2="33" y2="88" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="75" x2="50" y2="85" stroke="currentColor" stroke-width="3"/>
-      <path d="M20 70 Q30 85 50 85" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
-      <text x="18" y="110" font-size="10" fill="currentColor" opacity="0.7">full crush!</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
+crossbody: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}${LEGS_STD()}
+  <g>${RA(42,46,-35,15,'2.5s')}${L(42,46,68,62,8)}${L(68,62,80,74,6)}</g>
+  <g>${RA(78,46,-15,35,'2.5s')}${L(78,46,52,62,8)}${L(52,62,40,74,6)}</g>
+</svg>` },
 
-  // ─── ROW ─────────────────────────────────────────────────────────
-  row_start: {
-    svg: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="35" cy="30" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="40" x2="80" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="52" y1="48" x2="32" y2="38" stroke="currentColor" stroke-width="3"/>
-      <line x1="32" y1="38" x2="15" y2="55" stroke="currentColor" stroke-width="3"/>
-      <circle cx="12" cy="58" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="52" y1="48" x2="72" y2="38" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="38" x2="100" y2="55" stroke="currentColor" stroke-width="3"/>
-      <circle cx="103" cy="58" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="88" y="75" font-size="9" fill="currentColor" opacity="0.7">full stretch</text>
-      <line x1="80" y1="60" x2="110" y2="68" stroke="currentColor" stroke-width="3"/>
-      <line x1="80" y1="60" x2="65" y2="95" stroke="currentColor" stroke-width="3"/>
-      <line x1="65" y1="95" x2="60" y2="115" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  row_end: {
-    svg: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="35" cy="30" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="40" x2="80" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="52" y1="48" x2="32" y2="38" stroke="currentColor" stroke-width="3"/>
-      <line x1="32" y1="38" x2="15" y2="55" stroke="currentColor" stroke-width="3"/>
-      <circle cx="12" cy="58" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="52" y1="48" x2="72" y2="38" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="38" x2="70" y2="55" stroke="currentColor" stroke-width="3"/>
-      <circle cx="70" cy="58" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="55" y="72" font-size="9" fill="currentColor" opacity="0.8">elbow→hip</text>
-      <line x1="80" y1="60" x2="110" y2="68" stroke="currentColor" stroke-width="3"/>
-      <line x1="80" y1="60" x2="65" y2="95" stroke="currentColor" stroke-width="3"/>
-      <line x1="65" y1="95" x2="60" y2="115" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
+// ── PUSH-UPS (side view 200×110) ──────────────────────────────────────────
+pushup_top: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+  ${C(22,22,10)}${L(22,32,30,40,5)}
+  ${L(30,40,155,52,11)}
+  <g>${L(42,42,44,82,8)}${L(44,82,42,92,6)}</g>
+  <g>${L(52,43,54,83,8)}${L(54,83,52,93,6)}</g>
+  ${L(155,52,168,58,9)}${L(168,58,174,62,7)}
+  ${L(162,53,175,59,9)}${L(175,59,181,63,7)}
+  <line x1="0" y1="94" x2="200" y2="94" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
 
-  // ─── HAMMER CURL ─────────────────────────────────────────────────
-  hammer_start: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="28" x2="60" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="38" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="38" y1="80" x2="35" y2="110" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="110" x2="32" y2="118" stroke="currentColor" stroke-width="3"/>
-      <circle cx="32" cy="121" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="48" x2="82" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="82" y1="80" x2="85" y2="110" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="110" x2="88" y2="118" stroke="currentColor" stroke-width="3"/>
-      <circle cx="88" cy="121" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="22" y="130" font-size="9" fill="currentColor" opacity="0.7">neutral grip</text>
-      <line x1="60" y1="85" x2="44" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="85" x2="76" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="130" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="130" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  hammer_top: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="28" x2="60" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="35" y2="70" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="70" x2="33" y2="45" stroke="currentColor" stroke-width="3"/>
-      <circle cx="33" cy="42" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="48" x2="85" y2="70" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="70" x2="87" y2="45" stroke="currentColor" stroke-width="3"/>
-      <circle cx="87" cy="42" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="28" y="38" font-size="9" fill="currentColor" opacity="0.8">squeeze!</text>
-      <line x1="60" y1="85" x2="44" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="85" x2="76" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="130" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="130" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  reverse_start: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="28" x2="60" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="38" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="38" y1="80" x2="35" y2="108" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="108" x2="25" y2="115" stroke="currentColor" stroke-width="3"/>
-      <circle cx="22" cy="118" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="48" x2="82" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="82" y1="80" x2="85" y2="108" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="108" x2="95" y2="115" stroke="currentColor" stroke-width="3"/>
-      <circle cx="98" cy="118" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="20" y="130" font-size="8" fill="currentColor" opacity="0.7">overhand/knuckles↑</text>
-      <line x1="60" y1="85" x2="44" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="85" x2="76" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="130" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="130" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  reverse_top: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="28" x2="60" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="35" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="72" x2="30" y2="48" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="48" x2="22" y2="42" stroke="currentColor" stroke-width="3"/>
-      <circle cx="19" cy="40" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="48" x2="85" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="72" x2="90" y2="48" stroke="currentColor" stroke-width="3"/>
-      <line x1="90" y1="48" x2="98" y2="42" stroke="currentColor" stroke-width="3"/>
-      <circle cx="101" cy="40" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="60" y1="85" x2="44" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="85" x2="76" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="130" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="130" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
+pushup_bottom: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+  ${C(22,44,10)}${L(22,54,30,62,5)}
+  ${L(30,62,155,74,11)}
+  <g>${L(42,52,30,72,8)}${L(30,72,42,92,6)}</g>
+  <g>${L(52,53,40,73,8)}${L(40,73,52,93,6)}</g>
+  ${L(155,74,168,80,9)}${L(168,80,174,84,7)}
+  ${L(162,75,175,81,9)}${L(175,81,181,85,7)}
+  <line x1="0" y1="94" x2="200" y2="94" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
 
-  // ─── FLY ─────────────────────────────────────────────────────────
-  fly_start: {
-    svg: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="35" cy="32" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="42" x2="78" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="52" y1="50" x2="30" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="40" x2="15" y2="55" stroke="currentColor" stroke-width="3"/>
-      <circle cx="12" cy="58" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="52" y1="50" x2="74" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="74" y1="40" x2="102" y2="55" stroke="currentColor" stroke-width="3"/>
-      <circle cx="105" cy="58" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="80" y="72" font-size="9" fill="currentColor" opacity="0.7">arms hang</text>
-      <line x1="78" y1="62" x2="105" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="78" y1="62" x2="62" y2="95" stroke="currentColor" stroke-width="3"/>
-      <line x1="62" y1="95" x2="57" y2="112" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  fly_end: {
-    svg: `<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="45" cy="32" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="42" x2="90" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="63" y1="50" x2="20" y2="38" stroke="currentColor" stroke-width="3"/>
-      <circle cx="15" cy="36" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="63" y1="50" x2="140" y2="38" stroke="currentColor" stroke-width="3"/>
-      <circle cx="145" cy="36" r="5" fill="currentColor" opacity="0.6"/>
-      <text x="75" y="32" font-size="9" fill="currentColor" opacity="0.8">T-shape!</text>
-      <line x1="90" y1="60" x2="120" y2="70" stroke="currentColor" stroke-width="3"/>
-      <line x1="90" y1="60" x2="74" y2="93" stroke="currentColor" stroke-width="3"/>
-      <line x1="74" y1="93" x2="69" y2="112" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
+diamond_top: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+  ${C(22,22,10)}${L(22,32,30,40,5)}
+  ${L(30,40,155,52,11)}
+  ${L(42,42,50,82,8)}${L(50,82,48,92,6)}
+  ${L(52,43,54,83,8)}${L(54,83,56,92,6)}
+  ${L(155,52,168,58,9)}${L(168,58,174,62,7)}
+  <path d="M47 90 L52 94 L57 90" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <line x1="0" y1="94" x2="200" y2="94" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
 
-  // ─── SQUAT ────────────────────────────────────────────────────────
-  squat_stand: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="28" x2="50" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="28" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="72" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="82" x2="33" y2="125" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="82" x2="67" y2="125" stroke="currentColor" stroke-width="3"/>
-      <line x1="33" y1="125" x2="28" y2="152" stroke="currentColor" stroke-width="3"/>
-      <line x1="67" y1="125" x2="72" y2="152" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  squat_bottom: {
-    svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="55" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="30" x2="55" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="42" x2="30" y2="50" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="42" x2="80" y2="50" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="62" x2="28" y2="90" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="62" x2="82" y2="90" stroke="currentColor" stroke-width="3"/>
-      <line x1="28" y1="90" x2="18" y2="110" stroke="currentColor" stroke-width="3"/>
-      <line x1="82" y1="90" x2="92" y2="110" stroke="currentColor" stroke-width="3"/>
-      <text x="38" y="108" font-size="9" fill="currentColor" opacity="0.8">full depth</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
+diamond_bottom: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+  ${C(22,44,10)}${L(22,54,30,62,5)}
+  ${L(30,62,155,74,11)}
+  ${L(42,52,34,74,8)}${L(34,74,48,91,6)}
+  ${L(52,53,44,75,8)}${L(44,75,58,91,6)}
+  ${L(155,74,168,80,9)}${L(168,80,174,84,7)}
+  <path d="M46 89 L52 94 L58 89" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <line x1="0" y1="94" x2="200" y2="94" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
 
-  // ─── GOBLET SQUAT ─────────────────────────────────────────────────
-  goblet_hold: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="28" x2="50" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="35" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="55" x2="40" y2="45" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="65" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="65" y1="55" x2="60" y2="45" stroke="currentColor" stroke-width="3"/>
-      <rect x="42" y="40" width="16" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6" rx="2"/>
-      <text x="30" y="75" font-size="8" fill="currentColor" opacity="0.7">DB vertical</text>
-      <line x1="50" y1="82" x2="33" y2="125" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="82" x2="67" y2="125" stroke="currentColor" stroke-width="3"/>
-      <line x1="33" y1="125" x2="28" y2="152" stroke="currentColor" stroke-width="3"/>
-      <line x1="67" y1="125" x2="72" y2="152" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  goblet_bottom: {
-    svg: `<svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="55" cy="22" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="32" x2="55" y2="65" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="44" x2="38" y2="52" stroke="currentColor" stroke-width="3"/>
-      <line x1="38" y1="52" x2="42" y2="40" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="44" x2="72" y2="52" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="52" x2="68" y2="40" stroke="currentColor" stroke-width="3"/>
-      <rect x="46" y="34" width="18" height="14" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6" rx="2"/>
-      <line x1="55" y1="65" x2="25" y2="90" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="65" x2="85" y2="90" stroke="currentColor" stroke-width="3"/>
-      <line x1="25" y1="90" x2="15" y2="115" stroke="currentColor" stroke-width="3"/>
-      <line x1="85" y1="90" x2="95" y2="115" stroke="currentColor" stroke-width="3"/>
-      <text x="18" y="126" font-size="8" fill="currentColor" opacity="0.8">elbows inside knees</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
+// ── DEAD HANGS / PULL-UPS (120×220) ──────────────────────────────────────
+hang_passive: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
+  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  ${L(38,8,40,28,7)}${L(82,8,80,28,7)}
+  ${C(60,44,11)}${L(60,55,60,62,5)}
+  ${L(60,62,60,112,11)}${L(48,112,72,112,8)}
+  ${L(52,112,46,158,9)}${L(46,158,44,200,7)}${L(68,112,74,158,9)}${L(74,158,76,200,7)}
+  ${L(34,200,54,200,5)}${L(66,200,86,200,5)}
+  ${L(40,28,42,55,8)}${L(78,28,78,55,8)}
+</svg>` },
 
-  // ─── ROMANIAN DEADLIFT ────────────────────────────────────────────
-  rdl_top: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="28" x2="50" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="28" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="28" y1="58" x2="30" y2="78" stroke="currentColor" stroke-width="3"/>
-      <circle cx="30" cy="82" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="50" y1="45" x2="72" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="58" x2="70" y2="78" stroke="currentColor" stroke-width="3"/>
-      <circle cx="70" cy="82" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="50" y1="82" x2="35" y2="126" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="82" x2="65" y2="126" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="126" x2="30" y2="152" stroke="currentColor" stroke-width="3"/>
-      <line x1="65" y1="126" x2="70" y2="152" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  rdl_bottom: {
-    svg: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="30" cy="30" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="40" x2="70" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="52" x2="22" y2="42" stroke="currentColor" stroke-width="3"/>
-      <line x1="22" y1="42" x2="10" y2="62" stroke="currentColor" stroke-width="3"/>
-      <circle cx="8" cy="65" r="4" fill="currentColor" opacity="0.5"/>
-      <line x1="45" y1="52" x2="68" y2="42" stroke="currentColor" stroke-width="3"/>
-      <line x1="68" y1="42" x2="90" y2="62" stroke="currentColor" stroke-width="3"/>
-      <circle cx="93" cy="65" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="70" y1="72" x2="100" y2="78" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="72" x2="55" y2="105" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="105" x2="50" y2="115" stroke="currentColor" stroke-width="3"/>
-      <text x="62" y="88" font-size="9" fill="currentColor" opacity="0.8">hips BACK</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
+hang_active: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
+  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  ${L(38,8,36,26,7)}${L(82,8,84,26,7)}
+  ${C(60,40,11)}${L(60,51,60,58,5)}
+  ${L(60,58,60,106,11)}${L(48,106,72,106,8)}
+  ${L(52,106,46,150,9)}${L(46,150,44,192,7)}${L(68,106,74,150,9)}${L(74,150,76,192,7)}
+  ${L(34,192,54,192,5)}${L(66,192,86,192,5)}
+  ${L(36,26,38,51,8)}${L(84,26,82,51,8)}
+</svg>` },
 
-  // ─── LUNGE ───────────────────────────────────────────────────────
-  lunge_stand: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="28" x2="50" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="30" y2="80" stroke="currentColor" stroke-width="3"/>
-      <circle cx="28" cy="83" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="50" y1="45" x2="70" y2="80" stroke="currentColor" stroke-width="3"/>
-      <circle cx="72" cy="83" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="50" y1="82" x2="35" y2="125" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="82" x2="65" y2="125" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="125" x2="30" y2="152" stroke="currentColor" stroke-width="3"/>
-      <line x1="65" y1="125" x2="70" y2="152" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  lunge_down: {
-    svg: `<svg viewBox="0 0 140 130" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="22" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="32" x2="50" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="48" x2="28" y2="72" stroke="currentColor" stroke-width="3"/>
-      <circle cx="25" cy="75" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="50" y1="48" x2="72" y2="72" stroke="currentColor" stroke-width="3"/>
-      <circle cx="75" cy="75" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="50" y1="72" x2="32" y2="100" stroke="currentColor" stroke-width="3"/>
-      <line x1="32" y1="100" x2="22" y2="120" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="72" x2="82" y2="88" stroke="currentColor" stroke-width="3"/>
-      <line x1="82" y1="88" x2="98" y2="110" stroke="currentColor" stroke-width="3"/>
-      <circle cx="100" cy="113" r="4" fill="currentColor" opacity="0.4"/>
-      <text x="25" y="118" font-size="8" fill="currentColor" opacity="0.8">knee hovers</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
+pullup_hang: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
+  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  ${L(35,8,36,28,7)}${L(85,8,84,28,7)}
+  ${C(60,44,11)}${L(60,55,60,62,5)}
+  ${L(60,62,60,112,11)}${L(48,112,72,112,8)}
+  <g>${TA(0,-18,'2s')}
+    ${L(52,112,46,158,9)}${L(46,158,44,202,7)}${L(68,112,74,158,9)}${L(74,158,76,202,7)}
+    ${L(34,202,54,202,5)}${L(66,202,86,202,5)}
+  </g>
+  ${L(36,28,40,55,8)}${L(84,28,80,55,8)}
+</svg>` },
 
-  // ─── BULGARIAN SPLIT SQUAT ───────────────────────────────────────
-  bss_setup: {
-    svg: `<svg viewBox="0 0 160 140" xmlns="http://www.w3.org/2000/svg">
-      <rect x="100" y="75" width="55" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4" rx="2"/>
-      <circle cx="48" cy="22" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="32" x2="48" y2="75" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="48" x2="26" y2="72" stroke="currentColor" stroke-width="3"/>
-      <circle cx="23" cy="75" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="48" y1="48" x2="70" y2="72" stroke="currentColor" stroke-width="3"/>
-      <circle cx="73" cy="75" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="48" y1="75" x2="30" y2="108" stroke="currentColor" stroke-width="3"/>
-      <line x1="30" y1="108" x2="22" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="75" x2="80" y2="88" stroke="currentColor" stroke-width="3"/>
-      <line x1="80" y1="88" x2="100" y2="85" stroke="currentColor" stroke-width="3"/>
-      <text x="55" y="102" font-size="8" fill="currentColor" opacity="0.8">rear foot elevated</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  bss_bottom: {
-    svg: `<svg viewBox="0 0 160 140" xmlns="http://www.w3.org/2000/svg">
-      <rect x="100" y="75" width="55" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4" rx="2"/>
-      <circle cx="42" cy="22" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="42" y1="32" x2="42" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="42" y1="48" x2="22" y2="72" stroke="currentColor" stroke-width="3"/>
-      <circle cx="19" cy="75" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="42" y1="48" x2="62" y2="72" stroke="currentColor" stroke-width="3"/>
-      <circle cx="65" cy="75" r="5" fill="currentColor" opacity="0.6"/>
-      <line x1="42" y1="72" x2="26" y2="105" stroke="currentColor" stroke-width="3"/>
-      <line x1="26" y1="105" x2="18" y2="128" stroke="currentColor" stroke-width="3"/>
-      <circle cx="16" cy="131" r="4" fill="currentColor" opacity="0.4"/>
-      <line x1="42" y1="72" x2="82" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="82" y1="82" x2="100" y2="82" stroke="currentColor" stroke-width="3"/>
-      <text x="18" y="138" font-size="8" fill="currentColor" opacity="0.8">front shin vertical!</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
+pullup_mid: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
+  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  ${L(34,8,30,22,7)}${L(86,8,90,22,7)}
+  ${C(60,34,11)}${L(60,45,60,52,5)}
+  ${L(60,52,60,100,11)}${L(48,100,72,100,8)}
+  ${L(52,100,46,146,9)}${L(46,146,44,188,7)}${L(68,100,74,146,9)}${L(74,146,76,188,7)}
+  ${L(34,188,54,188,5)}${L(66,188,86,188,5)}
+  ${L(30,22,36,45,8)}${L(90,22,84,45,8)}
+</svg>` },
 
-  // ─── CALF RAISE ───────────────────────────────────────────────────
-  calf_bottom: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="140" x2="90" y2="140" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-      <line x1="45" y1="125" x2="55" y2="125" stroke="currentColor" stroke-width="3" opacity="0.6"/>
-      <circle cx="50" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="28" x2="50" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="30" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="70" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="82" x2="40" y2="118" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="118" x2="38" y2="140" stroke="currentColor" stroke-width="3"/>
-      <line x1="38" y1="140" x2="30" y2="145" stroke="currentColor" stroke-width="3"/>
-      <text x="18" y="155" font-size="8" fill="currentColor" opacity="0.8">heel BELOW step</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  calf_top: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <line x1="10" y1="140" x2="90" y2="140" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-      <line x1="45" y1="125" x2="55" y2="125" stroke="currentColor" stroke-width="3" opacity="0.6"/>
-      <circle cx="50" cy="14" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="24" x2="50" y2="78" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="42" x2="30" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="42" x2="70" y2="58" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="78" x2="40" y2="112" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="112" x2="40" y2="132" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="132" x2="50" y2="128" stroke="currentColor" stroke-width="3"/>
-      <text x="22" y="155" font-size="8" fill="currentColor" opacity="0.8">MAXIMUM rise!</text>
-      <text x="62" y="118" font-size="12" fill="currentColor" opacity="0.8">↑</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  seated_calf_down: {
-    svg: `<svg viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg">
-      <rect x="20" y="72" width="80" height="12" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4" rx="2"/>
-      <circle cx="45" cy="22" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="32" x2="55" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="50" x2="28" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="50" x2="68" y2="55" stroke="currentColor" stroke-width="3"/>
-      <rect x="62" y="52" width="14" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5" rx="2"/>
-      <line x1="55" y1="72" x2="45" y2="95" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="72" x2="75" y2="95" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="95" x2="40" y2="112" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="95" x2="80" y2="112" stroke="currentColor" stroke-width="3"/>
-      <text x="22" y="115" font-size="8" fill="currentColor" opacity="0.8">knees 90°, heel down</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
-  seated_calf_up: {
-    svg: `<svg viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg">
-      <rect x="20" y="72" width="80" height="12" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4" rx="2"/>
-      <circle cx="45" cy="22" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="32" x2="55" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="50" x2="28" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="50" x2="68" y2="55" stroke="currentColor" stroke-width="3"/>
-      <rect x="62" y="52" width="14" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5" rx="2"/>
-      <line x1="55" y1="72" x2="45" y2="95" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="72" x2="75" y2="95" stroke="currentColor" stroke-width="3"/>
-      <line x1="45" y1="95" x2="48" y2="110" stroke="currentColor" stroke-width="3"/>
-      <line x1="48" y1="110" x2="55" y2="105" stroke="currentColor" stroke-width="3"/>
-      <line x1="75" y1="95" x2="78" y2="110" stroke="currentColor" stroke-width="3"/>
-      <line x1="78" y1="110" x2="85" y2="105" stroke="currentColor" stroke-width="3"/>
-      <text x="28" y="118" font-size="8" fill="currentColor" opacity="0.8">soleus fires! heels up</text>
-    </svg>`,
-    color: "#ff6b35"
-  },
+pullup_top: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
+  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  ${L(32,8,26,18,7)}${L(88,8,94,18,7)}
+  ${C(60,12,11)}${L(60,23,60,30,5)}
+  ${L(60,30,60,78,11)}${L(48,78,72,78,8)}
+  ${L(52,78,46,124,9)}${L(46,124,44,166,7)}${L(68,78,74,124,9)}${L(74,124,76,166,7)}
+  ${L(34,166,54,166,5)}${L(66,166,86,166,5)}
+  ${L(26,18,30,30,8)}${L(94,18,90,30,8)}
+</svg>` },
 
-  // ─── FARMER'S CARRY ──────────────────────────────────────────────
-  farmers_stand: {
-    svg: `<svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="28" x2="50" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="45" x2="28" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="28" y1="80" x2="26" y2="108" stroke="currentColor" stroke-width="3"/>
-      <rect x="19" y="105" width="10" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6" rx="2"/>
-      <line x1="50" y1="45" x2="72" y2="80" stroke="currentColor" stroke-width="3"/>
-      <line x1="72" y1="80" x2="74" y2="108" stroke="currentColor" stroke-width="3"/>
-      <rect x="71" y="105" width="10" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6" rx="2"/>
-      <line x1="50" y1="82" x2="35" y2="125" stroke="currentColor" stroke-width="3"/>
-      <line x1="50" y1="82" x2="65" y2="125" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="125" x2="30" y2="152" stroke="currentColor" stroke-width="3"/>
-      <line x1="65" y1="125" x2="70" y2="152" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  farmers_walk: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="55" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="28" x2="55" y2="82" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="45" x2="33" y2="78" stroke="currentColor" stroke-width="3"/>
-      <line x1="33" y1="78" x2="31" y2="106" stroke="currentColor" stroke-width="3"/>
-      <rect x="24" y="103" width="10" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6" rx="2"/>
-      <line x1="55" y1="45" x2="77" y2="78" stroke="currentColor" stroke-width="3"/>
-      <line x1="77" y1="78" x2="79" y2="106" stroke="currentColor" stroke-width="3"/>
-      <rect x="76" y="103" width="10" height="18" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6" rx="2"/>
-      <line x1="55" y1="82" x2="40" y2="120" stroke="currentColor" stroke-width="3"/>
-      <line x1="40" y1="120" x2="32" y2="150" stroke="currentColor" stroke-width="3"/>
-      <line x1="55" y1="82" x2="68" y2="118" stroke="currentColor" stroke-width="3"/>
-      <line x1="68" y1="118" x2="78" y2="145" stroke="currentColor" stroke-width="3"/>
-      <text x="28" y="10" font-size="9" fill="currentColor" opacity="0.7">→ stride</text>
-    </svg>`,
-    color: "#47c8ff"
-  },
+chinup_hang: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
+  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  ${L(40,8,42,28,7)}${L(80,8,78,28,7)}
+  ${C(60,44,11)}${L(60,55,60,62,5)}
+  ${L(60,62,60,112,11)}${L(48,112,72,112,8)}
+  ${L(52,112,46,158,9)}${L(46,158,44,202,7)}${L(68,112,74,158,9)}${L(74,158,76,202,7)}
+  ${L(34,202,54,202,5)}${L(66,202,86,202,5)}
+  ${L(42,28,44,55,8)}${L(78,28,76,55,8)}
+</svg>` },
 
-  // ─── OVERHEAD TRICEP EXTENSION ────────────────────────────────────
-  overhead_ext_top: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="22" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="32" x2="60" y2="88" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="42" y2="38" stroke="currentColor" stroke-width="3"/>
-      <line x1="42" y1="38" x2="48" y2="12" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="78" y2="38" stroke="currentColor" stroke-width="3"/>
-      <line x1="78" y1="38" x2="72" y2="12" stroke="currentColor" stroke-width="3"/>
-      <rect x="48" y="4" width="24" height="10" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6" rx="2"/>
-      <text x="24" y="55" font-size="8" fill="currentColor" opacity="0.7">elbows UP</text>
-      <line x1="60" y1="88" x2="44" y2="132" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="88" x2="76" y2="132" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="132" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="132" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
-  overhead_ext_bottom: {
-    svg: `<svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="22" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="32" x2="60" y2="88" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="42" y2="38" stroke="currentColor" stroke-width="3"/>
-      <line x1="42" y1="38" x2="38" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="38" y1="62" x2="52" y2="72" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="48" x2="78" y2="38" stroke="currentColor" stroke-width="3"/>
-      <line x1="78" y1="38" x2="82" y2="62" stroke="currentColor" stroke-width="3"/>
-      <line x1="82" y1="62" x2="68" y2="72" stroke="currentColor" stroke-width="3"/>
-      <rect x="48" y="68" width="24" height="10" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6" rx="2"/>
-      <text x="25" y="86" font-size="8" fill="currentColor" opacity="0.8">behind head</text>
-      <line x1="60" y1="88" x2="44" y2="132" stroke="currentColor" stroke-width="3"/>
-      <line x1="60" y1="88" x2="76" y2="132" stroke="currentColor" stroke-width="3"/>
-      <line x1="44" y1="132" x2="41" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="76" y1="132" x2="79" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#e8ff47"
-  },
+chinup_top: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
+  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  ${L(36,8,28,18,7)}${L(84,8,92,18,7)}
+  ${C(60,14,11)}${L(60,25,60,32,5)}
+  ${L(60,32,60,80,11)}${L(48,80,72,80,8)}
+  ${L(52,80,46,126,9)}${L(46,126,44,168,7)}${L(68,80,74,126,9)}${L(74,126,76,168,7)}
+  ${L(34,168,54,168,5)}${L(66,168,86,168,5)}
+  ${L(28,18,32,32,8)}${L(92,18,88,32,8)}
+</svg>` },
 
-  // ─── ARM SWING ─────────────────────────────────────────────────
-  arm_swing: {
-    svg: `<svg viewBox="0 0 140 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="70" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="28" x2="70" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="45" x2="15" y2="60" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="45" x2="125" y2="60" stroke="currentColor" stroke-width="3"/>
-      <text x="8" y="55" font-size="11" fill="currentColor" opacity="0.6">←</text>
-      <text x="118" y="55" font-size="11" fill="currentColor" opacity="0.6">→</text>
-      <line x1="70" y1="85" x2="52" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="85" x2="88" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="52" y1="130" x2="47" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="88" y1="130" x2="93" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  },
-  crossbody: {
-    svg: `<svg viewBox="0 0 140 160" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="70" cy="18" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="28" x2="70" y2="85" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="45" x2="105" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="45" x2="35" y2="55" stroke="currentColor" stroke-width="3"/>
-      <line x1="35" y1="55" x2="95" y2="62" stroke="currentColor" stroke-width="3" stroke-dasharray="5 3"/>
-      <text x="55" y="78" font-size="8" fill="currentColor" opacity="0.7">cross body</text>
-      <line x1="70" y1="85" x2="52" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="70" y1="85" x2="88" y2="130" stroke="currentColor" stroke-width="3"/>
-      <line x1="52" y1="130" x2="47" y2="155" stroke="currentColor" stroke-width="3"/>
-      <line x1="88" y1="130" x2="93" y2="155" stroke="currentColor" stroke-width="3"/>
-    </svg>`,
-    color: "#47c8ff"
-  }
-};
+// ── FLOOR PRESS (top-down 3/4 view, 200×110) ─────────────────────────────
+floor_press_top: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+  <line x1="0" y1="100" x2="200" y2="100" stroke="currentColor" stroke-width="2" opacity="0.15"/>
+  ${C(100,18,11)}${L(100,29,100,36,5)}
+  ${L(100,36,100,82,11)}${L(88,82,112,82,8)}
+  ${L(62,50,44,50,8)}${L(44,50,36,74,6)}
+  ${L(138,50,156,50,8)}${L(156,50,164,74,6)}
+  ${L(94,82,86,100,9)}${L(86,100,82,100,7)}
+  ${L(106,82,114,100,9)}${L(114,100,118,100,7)}
+  ${DB(36,76)}${DB(164,76)}
+</svg>` },
+
+floor_press_bottom: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+  <line x1="0" y1="100" x2="200" y2="100" stroke="currentColor" stroke-width="2" opacity="0.15"/>
+  ${C(100,18,11)}${L(100,29,100,36,5)}
+  ${L(100,36,100,82,11)}${L(88,82,112,82,8)}
+  ${L(62,50,50,70,8)}${L(50,70,50,90,6)}
+  ${L(138,50,150,70,8)}${L(150,70,150,90,6)}
+  ${L(94,82,86,100,9)}${L(86,100,82,100,7)}
+  ${L(106,82,114,100,9)}${L(114,100,118,100,7)}
+  ${DB(50,93)}${DB(150,93)}
+</svg>` },
+
+// ── ARNOLD PRESS ──────────────────────────────────────────────────────────
+arnold_start: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}
+  ${L(52,92,50,130,9)}${L(50,130,50,168,7)}${L(68,92,70,130,9)}${L(70,130,70,168,7)}
+  ${L(38,182,58,182,5)}${L(62,182,82,182,5)}
+  ${L(42,46,28,66,8)}${L(28,66,32,44,6)}
+  ${L(78,46,92,66,8)}${L(92,66,88,44,6)}
+  ${DB(32,44)}${DB(88,44)}
+</svg>` },
+
+arnold_mid: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}
+  ${L(52,92,50,130,9)}${L(50,130,50,168,7)}${L(68,92,70,130,9)}${L(70,130,70,168,7)}
+  ${L(38,182,58,182,5)}${L(62,182,82,182,5)}
+  ${L(42,46,20,60,8)}${L(20,60,16,38,6)}
+  ${L(78,46,100,60,8)}${L(100,60,104,38,6)}
+  ${DB(16,36)}${DB(104,36)}
+</svg>` },
+
+arnold_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}
+  ${L(52,92,50,130,9)}${L(50,130,50,168,7)}${L(68,92,70,130,9)}${L(70,130,70,168,7)}
+  ${L(38,182,58,182,5)}${L(62,182,82,182,5)}
+  <g>${RA(42,46,-140,-90,'3s')}${L(42,46,24,30,8)}${L(24,30,28,6,6)}${DB(28,3)}</g>
+  <g>${RA(78,46,-40,10,'3s')}${L(78,46,96,30,8)}${L(96,30,92,6,6)}${DB(92,3)}</g>
+</svg>` },
+
+// ── LATERAL RAISE ─────────────────────────────────────────────────────────
+lateral_start: { svg: S(
+  42,46, 28,78, 22,106,
+  78,46, 92,78, 98,106,
+  `${DB(22,106)}${DB(98,106)}`) },
+
+lateral_top: { svg: SW(
+  62,46, 18,46, 4,48,
+  98,46,142,46,156,48,
+  `${DB(4,48)}${DB(156,48)}`) },
+
+// ── DB SINGLE-ARM ROW (hinge 160×160) ────────────────────────────────────
+row_start: { svg: `<svg viewBox="0 0 170 160" xmlns="http://www.w3.org/2000/svg">
+  ${C(24,30,10)}${L(24,40,32,50,5)}
+  ${L(32,50,140,72,11)}
+  ${L(68,57,64,100,8)}${L(64,100,62,110,6)}
+  ${L(116,66,112,108,8)}${L(112,108,110,120,6)}
+  ${L(140,72,150,104,9)}${L(150,104,152,130,7)}
+  ${L(60,58,48,90,8)}${L(48,90,42,110,6)}
+  ${DB(42,112)}
+  <line x1="30" y1="132" x2="160" y2="132" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
+
+row_end: { svg: `<svg viewBox="0 0 170 160" xmlns="http://www.w3.org/2000/svg">
+  ${C(24,30,10)}${L(24,40,32,50,5)}
+  ${L(32,50,140,72,11)}
+  ${L(68,57,64,100,8)}${L(64,100,62,110,6)}
+  ${L(116,66,112,108,8)}${L(112,108,110,120,6)}
+  ${L(140,72,150,104,9)}${L(150,104,152,130,7)}
+  <g>${RA(60,58,-10,40,'2.5s')}${L(60,58,62,34,8)}${L(62,34,72,24,6)}${DB(72,22)}</g>
+  <line x1="30" y1="132" x2="160" y2="132" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
+
+// ── REAR DELT FLY (hinge 160×160) ─────────────────────────────────────────
+fly_start: { svg: `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  ${C(22,28,10)}${L(22,38,30,46,5)}
+  ${L(30,46,130,68,11)}
+  ${L(56,54,52,96,8)}${L(52,96,50,120,6)}
+  ${L(104,64,100,106,8)}${L(100,106,98,130,7)}
+  ${L(56,54,44,78,8)}${L(44,78,40,100,6)}${DB(38,100)}
+  ${L(104,64,116,78,8)}${L(116,78,120,100,6)}${DB(122,100)}
+  <line x1="28" y1="128" x2="148" y2="128" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
+
+fly_end: { svg: `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  ${C(22,28,10)}${L(22,38,30,46,5)}
+  ${L(30,46,130,68,11)}
+  ${L(56,54,52,96,8)}${L(52,96,50,120,6)}
+  ${L(104,64,100,106,8)}${L(100,106,98,130,7)}
+  <g>${RA(56,54,-30,-65,'2.5s')}${L(56,54,20,48,8)}${L(20,48,10,44,6)}${DB(8,42)}</g>
+  <g>${RA(104,64,30,65,'2.5s')}${L(104,64,140,58,8)}${L(140,58,152,54,6)}${DB(154,52)}</g>
+  <line x1="28" y1="128" x2="148" y2="128" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
+
+// ── TRICEP KICKBACK ───────────────────────────────────────────────────────
+kickback_start: { svg: `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  ${C(22,28,10)}${L(22,38,30,46,5)}
+  ${L(30,46,130,68,11)}
+  ${L(56,54,52,96,8)}${L(52,96,50,120,6)}
+  ${L(104,64,100,106,8)}${L(100,106,98,130,7)}
+  ${L(56,54,44,78,8)}${L(44,78,30,98,6)}${DB(26,98)}
+  <line x1="28" y1="128" x2="148" y2="128" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
+
+kickback_end: { svg: `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  ${C(22,28,10)}${L(22,38,30,46,5)}
+  ${L(30,46,130,68,11)}
+  ${L(56,54,52,96,8)}${L(52,96,50,120,6)}
+  ${L(104,64,100,106,8)}${L(100,106,98,130,7)}
+  <g>${RA(56,54,-10,30,'2.5s')}${L(56,54,44,78,8)}${L(44,78,70,60,6)}${DB(74,58)}</g>
+  <line x1="28" y1="128" x2="148" y2="128" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
+
+// ── CURLS ─────────────────────────────────────────────────────────────────
+hammer_start: { svg: S(
+  42,46, 28,78, 22,106,
+  78,46, 92,78, 98,106,
+  `${DBV(22,106)}${DBV(98,106)}`) },
+
+hammer_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}${LEGS_STD()}
+  ${L(42,46,28,78,8)}
+  <g>${RA(28,78,-70,-20,'2.5s')}${L(28,78,16,52,6)}${DBV(14,46)}</g>
+  ${L(78,46,92,78,8)}
+  <g>${RA(92,78,70,20,'2.5s')}${L(92,78,104,52,6)}${DBV(106,46)}</g>
+</svg>` },
+
+reverse_start: { svg: S(
+  42,46, 28,78, 22,106,
+  78,46, 92,78, 98,106,
+  `${DB(22,106)}${DB(98,106)}`) },
+
+reverse_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}${LEGS_STD()}
+  ${L(42,46,28,78,8)}
+  <g>${RA(28,78,-70,-20,'2.5s')}${L(28,78,16,52,6)}${DB(14,46)}</g>
+  ${L(78,46,92,78,8)}
+  <g>${RA(92,78,70,20,'2.5s')}${L(92,78,104,52,6)}${DB(106,46)}</g>
+</svg>` },
+
+// ── WRIST CURLS (seated 140×180) ──────────────────────────────────────────
+wrist_curl_start: { svg: `<svg viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
+  ${C(70,18,11)}${L(70,29,70,38,5)}${L(70,38,70,88,11)}${L(58,88,82,88,8)}
+  ${L(58,88,50,128,9)}${L(50,128,48,160,7)}${L(72,88,80,128,9)}${L(80,128,82,160,7)}
+  <line x1="24" y1="160" x2="116" y2="160" stroke="currentColor" stroke-width="3" opacity="0.25"/>
+  ${L(42,46,30,88,8)}${L(30,88,28,128,6)}
+  ${L(98,46,110,88,8)}${L(110,88,112,128,6)}
+  <g>${RA(28,120,10,-20,'2s')}${L(28,120,28,130,6)}${DB(26,132)}</g>
+  <g>${RA(112,120,-10,20,'2s')}${L(112,120,112,130,6)}${DB(114,132)}</g>
+</svg>` },
+
+wrist_curl_end: { svg: `<svg viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
+  ${C(70,18,11)}${L(70,29,70,38,5)}${L(70,38,70,88,11)}${L(58,88,82,88,8)}
+  ${L(58,88,50,128,9)}${L(50,128,48,160,7)}${L(72,88,80,128,9)}${L(80,128,82,160,7)}
+  <line x1="24" y1="160" x2="116" y2="160" stroke="currentColor" stroke-width="3" opacity="0.25"/>
+  ${L(42,46,30,88,8)}${L(30,88,28,128,6)}
+  ${L(98,46,110,88,8)}${L(110,88,112,128,6)}
+  <g>${RA(28,120,-20,10,'2s')}${L(28,120,24,112,6)}${DB(22,110)}</g>
+  <g>${RA(112,120,20,-10,'2s')}${L(112,120,116,112,6)}${DB(118,110)}</g>
+</svg>` },
+
+reverse_curl_start: { svg: `<svg viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
+  ${C(70,18,11)}${L(70,29,70,38,5)}${L(70,38,70,88,11)}${L(58,88,82,88,8)}
+  ${L(58,88,50,128,9)}${L(50,128,48,160,7)}${L(72,88,80,128,9)}${L(80,128,82,160,7)}
+  <line x1="24" y1="160" x2="116" y2="160" stroke="currentColor" stroke-width="3" opacity="0.25"/>
+  ${L(42,46,30,88,8)}${L(30,88,28,128,6)}
+  ${L(98,46,110,88,8)}${L(110,88,112,128,6)}
+  ${DB(26,130)}${DB(114,130)}
+</svg>` },
+
+reverse_curl_end: { svg: `<svg viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
+  ${C(70,18,11)}${L(70,29,70,38,5)}${L(70,38,70,88,11)}${L(58,88,82,88,8)}
+  ${L(58,88,50,128,9)}${L(50,128,48,160,7)}${L(72,88,80,128,9)}${L(80,128,82,160,7)}
+  <line x1="24" y1="160" x2="116" y2="160" stroke="currentColor" stroke-width="3" opacity="0.25"/>
+  ${L(42,46,30,88,8)}${L(30,88,22,108,6)}${DB(20,108)}
+  ${L(98,46,110,88,8)}${L(110,88,118,108,6)}${DB(120,108)}
+</svg>` },
+
+// ── GRIP ──────────────────────────────────────────────────────────────────
+grip_open: { svg: `<svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+  ${L(30,100,30,40,8)}
+  ${L(30,40,20,16,5)}${L(30,40,26,14,5)}${L(30,40,32,14,5)}${L(30,40,38,15,5)}${L(30,40,44,18,5)}
+  ${L(30,60,50,85,7)}
+  <ellipse cx="55" cy="90" rx="8" ry="5" fill="currentColor" opacity="0.5"/>
+</svg>` },
+
+grip_closed: { svg: `<svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+  ${L(30,100,30,40,8)}
+  <g>${RA(30,40,-20,20,'1.5s')}
+    ${L(30,40,22,28,5)}${L(30,40,26,26,5)}${L(30,40,32,26,5)}${L(30,40,38,27,5)}${L(30,40,43,30,5)}
+  </g>
+  ${L(30,60,50,85,7)}
+  <ellipse cx="55" cy="90" rx="8" ry="5" fill="currentColor" opacity="0.5"/>
+</svg>` },
+
+// ── FARMER'S CARRY ────────────────────────────────────────────────────────
+farmers_stand: { svg: S(
+  42,46, 30,78, 24,106,
+  78,46, 90,78, 96,106,
+  `${DB(24,106)}${DB(96,106)}`) },
+
+farmers_walk: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}
+  ${L(42,46,28,78,8)}${L(28,78,22,106,6)}${DB(22,106)}
+  ${L(78,46,92,78,8)}${L(92,78,98,106,6)}${DB(98,106)}
+  ${L(52,92,42,138,9)}${L(42,138,36,182,7)}
+  ${L(68,92,80,138,9)}${L(80,138,84,162,7)}
+  ${L(24,182,46,182,5)}${L(72,162,92,162,5)}
+</svg>` },
+
+// ── SQUATS ────────────────────────────────────────────────────────────────
+squat_stand: { svg: S(
+  42,46, 30,72, 24,98,
+  78,46, 90,72, 96,98) },
+
+squat_bottom: { svg: `<svg viewBox="0 0 130 200" xmlns="http://www.w3.org/2000/svg">
+  ${C(65,26,11)}${L(65,37,65,46,5)}
+  ${L(65,46,65,76,11)}${L(53,76,77,76,8)}
+  ${L(47,46,18,62,8)}${L(18,62,14,88,6)}
+  ${L(83,46,112,62,8)}${L(112,62,116,88,6)}
+  ${L(56,76,34,110,9)}${L(34,110,30,140,7)}
+  ${L(74,76,96,110,9)}${L(96,110,100,140,7)}
+  ${L(18,140,44,140,5)}${L(86,140,112,140,5)}
+</svg>` },
+
+// ── GOBLET SQUAT ──────────────────────────────────────────────────────────
+goblet_hold: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}${LEGS_STD()}
+  ${L(42,46,36,66,8)}${L(36,66,42,52,6)}
+  ${L(78,46,84,66,8)}${L(84,66,78,52,6)}
+  ${DBV(60,44)}
+</svg>` },
+
+goblet_bottom: { svg: `<svg viewBox="0 0 130 200" xmlns="http://www.w3.org/2000/svg">
+  ${C(65,28,11)}${L(65,39,65,48,5)}
+  ${L(65,48,65,78,11)}${L(53,78,77,78,8)}
+  ${L(47,48,26,64,8)}${L(26,64,26,74,6)}
+  ${L(83,48,104,64,8)}${L(104,64,104,74,6)}
+  ${DBV(65,58)}
+  ${L(56,78,34,112,9)}${L(34,112,30,142,7)}
+  ${L(74,78,96,112,9)}${L(96,112,100,142,7)}
+  ${L(18,142,46,142,5)}${L(86,142,114,142,5)}
+</svg>` },
+
+// ── ROMANIAN DEADLIFT ─────────────────────────────────────────────────────
+rdl_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}${LEGS_STD()}
+  ${L(42,46,30,78,8)}${L(30,78,28,106,6)}${DB(28,106)}
+  ${L(78,46,90,78,8)}${L(90,78,92,106,6)}${DB(92,106)}
+</svg>` },
+
+rdl_bottom: { svg: `<svg viewBox="0 0 160 180" xmlns="http://www.w3.org/2000/svg">
+  ${C(24,26,10)}${L(24,36,32,44,5)}
+  ${L(32,44,130,70,11)}
+  ${L(58,54,52,100,9)}${L(52,100,50,130,7)}
+  ${L(102,64,98,110,9)}${L(98,110,96,140,7)}
+  ${L(36,46,32,68,8)}${L(32,68,30,90,6)}${DB(28,90)}
+  ${L(60,55,62,68,8)}${L(62,68,64,90,6)}${DB(62,92)}
+  ${L(36,130,58,130,5)}${L(80,140,104,140,5)}
+</svg>` },
+
+// ── REVERSE LUNGE ─────────────────────────────────────────────────────────
+lunge_stand: { svg: S(
+  42,46, 28,78, 22,106,
+  78,46, 92,78, 98,106) },
+
+lunge_down: { svg: `<svg viewBox="0 0 130 200" xmlns="http://www.w3.org/2000/svg">
+  ${C(65,22,11)}${L(65,33,65,42,5)}
+  ${L(65,42,65,82,11)}${L(53,82,77,82,8)}
+  ${L(47,42,30,62,8)}${L(30,62,24,88,6)}
+  ${L(83,42,100,62,8)}${L(100,62,106,88,6)}
+  ${L(58,82,48,122,9)}${L(48,122,44,152,7)}
+  ${L(72,82,96,122,9)}${L(96,122,100,152,7)}
+  ${L(32,152,54,152,5)}${L(88,152,112,152,5)}
+</svg>` },
+
+// ── BULGARIAN SPLIT SQUAT ─────────────────────────────────────────────────
+bss_setup: { svg: `<svg viewBox="0 0 150 200" xmlns="http://www.w3.org/2000/svg">
+  ${C(65,22,11)}${L(65,33,65,42,5)}
+  ${L(65,42,65,82,11)}${L(53,82,77,82,8)}
+  ${L(47,42,30,62,8)}${L(30,62,24,88,6)}${DB(24,88)}
+  ${L(83,42,100,62,8)}${L(100,62,106,88,6)}${DB(106,88)}
+  ${L(58,82,48,130,9)}${L(48,130,44,168,7)}
+  ${L(72,82,90,110,9)}${L(90,110,108,128,7)}
+  ${L(32,168,54,168,5)}
+  <rect x="96" y="128" width="40" height="14" rx="3" fill="currentColor" opacity="0.25"/>
+</svg>` },
+
+bss_bottom: { svg: `<svg viewBox="0 0 150 200" xmlns="http://www.w3.org/2000/svg">
+  ${C(65,32,11)}${L(65,43,65,52,5)}
+  ${L(65,52,65,92,11)}${L(53,92,77,92,8)}
+  ${L(47,52,30,72,8)}${L(30,72,24,98,6)}${DB(24,98)}
+  ${L(83,52,100,72,8)}${L(100,72,106,98,6)}${DB(106,98)}
+  ${L(58,92,48,140,9)}${L(48,140,44,178,7)}
+  ${L(72,92,90,120,9)}${L(90,120,108,138,7)}
+  ${L(32,178,54,178,5)}
+  <rect x="96" y="138" width="40" height="14" rx="3" fill="currentColor" opacity="0.25"/>
+</svg>` },
+
+// ── CALF RAISES ───────────────────────────────────────────────────────────
+calf_bottom: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}
+  ${L(42,46,28,78,8)}${L(28,78,24,106,6)}
+  ${L(78,46,92,78,8)}${L(92,78,96,106,6)}
+  ${L(52,92,46,140,9)}${L(46,140,42,190,7)}
+  ${L(68,92,74,140,9)}${L(74,140,78,190,7)}
+  ${L(28,190,52,190,5)}${L(68,190,92,190,5)}
+  <line x1="20" y1="190" x2="100" y2="190" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
+
+calf_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+  ${TORSO_STD()}
+  ${L(42,46,28,78,8)}${L(28,78,24,106,6)}
+  ${L(78,46,92,78,8)}${L(92,78,96,106,6)}
+  <g>${TA(0,-12,'2s')}
+    ${L(52,92,46,140,9)}${L(46,140,44,176,7)}
+    ${L(68,92,74,140,9)}${L(74,140,76,176,7)}
+    ${L(34,176,52,176,5)}${L(68,176,86,176,5)}
+  </g>
+  <line x1="20" y1="188" x2="100" y2="188" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+</svg>` },
+
+// ── SEATED CALF RAISE (seated 140×180) ───────────────────────────────────
+seated_calf_down: { svg: `<svg viewBox="0 0 150 170" xmlns="http://www.w3.org/2000/svg">
+  ${C(75,20,11)}${L(75,31,75,40,5)}${L(75,40,75,84,11)}${L(63,84,87,84,8)}
+  ${L(55,46,40,82,8)}${L(40,82,36,110,6)}
+  ${L(95,46,110,82,8)}${L(110,82,114,110,6)}
+  <rect x="20" y="84" width="110" height="10" rx="4" fill="currentColor" opacity="0.2"/>
+  ${L(60,84,44,124,9)}${L(44,124,44,152,7)}
+  ${L(90,84,106,124,9)}${L(106,124,106,152,7)}
+  ${L(30,152,60,152,5)}${L(92,152,122,152,5)}
+  ${DB(75,76)}
+</svg>` },
+
+seated_calf_up: { svg: `<svg viewBox="0 0 150 170" xmlns="http://www.w3.org/2000/svg">
+  ${C(75,20,11)}${L(75,31,75,40,5)}${L(75,40,75,84,11)}${L(63,84,87,84,8)}
+  ${L(55,46,40,82,8)}${L(40,82,36,110,6)}
+  ${L(95,46,110,82,8)}${L(110,82,114,110,6)}
+  <rect x="20" y="84" width="110" height="10" rx="4" fill="currentColor" opacity="0.2"/>
+  ${L(60,84,44,124,9)}${L(44,124,44,148,7)}
+  ${L(90,84,106,124,9)}${L(106,124,106,148,7)}
+  <g>${TA(0,-10,'2s')}
+    ${L(32,148,56,148,5)}${L(90,148,114,148,5)}
+  </g>
+  ${DB(75,76)}
+</svg>` },
+
+// ── OVERHEAD TRICEP EXTENSION ─────────────────────────────────────────────
+overhead_ext_top: { svg: `<svg viewBox="0 0 120 210" xmlns="http://www.w3.org/2000/svg">
+  ${C(60,18,11)}${L(60,29,60,38,5)}${L(60,38,60,94,11)}${L(48,94,72,94,8)}
+  ${L(52,94,46,140,9)}${L(46,140,42,184,7)}${L(68,94,74,140,9)}${L(74,140,78,184,7)}
+  ${L(30,184,52,184,5)}${L(68,184,90,184,5)}
+  ${L(42,48,36,24,8)}${L(36,24,48,6,6)}
+  ${L(78,48,84,24,8)}${L(84,24,72,6,6)}
+  ${DBV(60,3)}
+</svg>` },
+
+overhead_ext_bottom: { svg: `<svg viewBox="0 0 120 210" xmlns="http://www.w3.org/2000/svg">
+  ${C(60,18,11)}${L(60,29,60,38,5)}${L(60,38,60,94,11)}${L(48,94,72,94,8)}
+  ${L(52,94,46,140,9)}${L(46,140,42,184,7)}${L(68,94,74,140,9)}${L(74,140,78,184,7)}
+  ${L(30,184,52,184,5)}${L(68,184,90,184,5)}
+  ${L(42,48,20,44,8)}${L(20,44,22,68,6)}
+  ${L(78,48,100,44,8)}${L(100,44,98,68,6)}
+  ${DBV(60,72)}
+</svg>` },
+
+}; // end POSES
+
+}();
