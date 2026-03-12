@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Navin · Morning Strength</title>
+  <meta name="theme-color" content="#080808">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="top-bar-logo">MORNING <span>STRENGTH</span></div>
+    <div class="top-bar-right">
+      <div class="progress-badge" id="global-progress">Loading...</div>
+    </div>
+  </header>
+
+  <!-- DAY NAV -->
+  <nav class="day-nav-wrap">
+    <div id="day-nav"></div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main id="day-panel"></main>
+
+  <!-- EXERCISE MODAL -->
+  <div id="ex-modal">
+    <div class="modal-backdrop" onclick="closeExercise()"></div>
+    <div class="modal-sheet">
+      <div class="modal-drag-handle"></div>
+
+      <div class="modal-header">
+        <div>
+          <h2 id="ex-modal-title"></h2>
+          <p id="ex-modal-target"></p>
+        </div>
+        <button class="modal-close" onclick="closeExercise()">✕</button>
+      </div>
+
+      <div class="modal-stats-row">
+        <div class="modal-stat">
+          <div class="modal-stat-label">Sets × Reps</div>
+          <div class="modal-stat-val" id="ex-modal-sets">—</div>
+        </div>
+        <div class="modal-stat">
+          <div class="modal-stat-label">Load</div>
+          <div class="modal-stat-val" id="ex-modal-load">—</div>
+        </div>
+      </div>
+
+      <!-- POSE ANIMATION -->
+      <div class="pose-section">
+        <div class="pose-section-title">Form Guide</div>
+        <div id="pose-display"></div>
+        <div id="pose-indicators"></div>
+      </div>
+
+      <!-- BREATHING GUIDE -->
+      <div class="breath-section">
+        <div class="breath-ring-wrap">
+          <div id="breath-ring">
+            <div>
+              <span id="breath-label">—</span>
+              <span id="breath-countdown"></span>
+            </div>
+          </div>
+        </div>
+        <div class="breath-info">
+          <div class="breath-info-title">Breathing</div>
+          <p id="breath-instruction"></p>
+        </div>
+      </div>
+
+      <!-- COACHING CUES -->
+      <div class="cues-section">
+        <div class="cues-title">Coaching Cues</div>
+        <ul id="ex-cues"></ul>
+      </div>
+
+      <!-- SET TRACKER + LOG + REST -->
+      <div class="modal-actions">
+        <div class="set-progress-row">
+          <div id="modal-set-label">0/0 sets</div>
+          <div id="modal-set-track"></div>
+        </div>
+
+        <button class="log-set-btn" onclick="logSetFromModal()">
+          LOG SET ✓
+        </button>
+
+        <div class="rest-bar-row">
+          <div class="rest-bar-header">
+            <span id="rest-timer-label">Tap to start rest</span>
+            <button id="rest-btn" onclick="startRestTimer(state.activeExercise?.ex.rest || 60)">
+              Start Rest
+            </button>
+          </div>
+          <div class="rest-bar-track">
+            <div id="rest-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/poses.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      updateGlobalProgress();
+    });
+
+    function updateGlobalProgress() {
+      const today = new Date().getDay(); // 0=Sun, 1=Mon...
+      const dayMap = [6, 0, 1, 2, 3, 4, 5]; // JS day → our day index
+      const todayIdx = dayMap[today];
+      const pct = getDayCompletion(state.activeDay);
+      document.getElementById('global-progress').textContent =
+        `${PROGRAM.days[state.activeDay].label} · ${pct}% done`;
+    }
+
+    // Auto-detect today's day
+    document.addEventListener('DOMContentLoaded', () => {
+      const dayMap = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 0: 6 };
+      const todayIdx = dayMap[new Date().getDay()];
+      if (todayIdx !== undefined) {
+        setTimeout(() => {
+          selectDay(todayIdx);
+          document.querySelectorAll('.day-btn')[todayIdx]?.scrollIntoView({ 
+            behavior: 'smooth', block: 'nearest', inline: 'center' 
+          });
+        }, 100);
+      }
+    });
+
+    // Update badge on day change
+    const origSelectDay = selectDay;
+    window.selectDay = function(idx) {
+      origSelectDay(idx);
+      setTimeout(updateGlobalProgress, 200);
+    };
+  </script>
+</body>
+</html>
