@@ -1,561 +1,350 @@
-// poses.js — Realistic animated SVG exercise figures
-// Each pose uses proportioned body with SMIL animations showing movement
-
+// poses.js — Filled silhouette exercise figures
 !function(){
-// ── Micro helpers ──────────────────────────────────────────────────────────
-const L=(x1,y1,x2,y2,w)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-const C=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="currentColor" opacity="0.9"/>`;
-// Dumbbell at (x,y) horizontal
-const DB=(x,y)=>`<g opacity="0.75"><rect x="${x-9}" y="${y-3}" width="18" height="6" rx="3" fill="currentColor"/><rect x="${x-14}" y="${y-5}" width="5" height="10" rx="2" fill="currentColor"/><rect x="${x+9}" y="${y-5}" width="5" height="10" rx="2" fill="currentColor"/></g>`;
-// Dumbbell vertical at (x,y)
-const DBV=(x,y)=>`<g opacity="0.75"><rect x="${x-3}" y="${y-9}" width="6" height="18" rx="3" fill="currentColor"/><rect x="${x-5}" y="${y-13}" width="10" height="5" rx="2" fill="currentColor"/><rect x="${x-5}" y="${y+8}" width="10" height="5" rx="2" fill="currentColor"/></g>`;
-// SMIL rotation anim around (cx,cy) from a→b→a
-const RA=(cx,cy,a,b,dur)=>`<animateTransform attributeName="transform" type="rotate" values="${a} ${cx} ${cy};${b} ${cx} ${cy};${a} ${cx} ${cy}" keyTimes="0;0.5;1" dur="${dur||'2.5s'}" repeatCount="indefinite" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1"/>`;
-// SMIL translate anim
-const TA=(dx,dy,dur)=>`<animateTransform attributeName="transform" type="translate" values="0 0;${dx} ${dy};0 0" keyTimes="0;0.5;1" dur="${dur||'2.5s'}" repeatCount="indefinite" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1" additive="sum"/>`;
+const svg=(vb,body)=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg"><style>@keyframes fe-b{0%,100%{opacity:.82}50%{opacity:1}}.fe-g{animation:fe-b 4s ease-in-out infinite}</style><g class="fe-g">${body}</g></svg>`;
+const hd=(x,y)=>`<ellipse cx="${x}" cy="${y}" rx="13" ry="15" fill="currentColor"/>`;
+const torso=(cx,ty,h,sw=14,ww=10)=>`<path d="M${cx-sw} ${ty}L${cx+sw} ${ty}L${cx+ww} ${ty+h}L${cx-ww} ${ty+h}Z" fill="currentColor" opacity=".88"/>`;
+const seg=(ax,ay,bx,by,w,op=.85)=>{const dx=bx-ax,dy=by-ay,l=Math.hypot(dx,dy),a=Math.atan2(dy,dx)*180/Math.PI;return `<rect x="${ax}" y="${ay-w}" width="${l}" height="${w*2}" rx="${w}" fill="currentColor" opacity="${op}" transform="rotate(${a},${ax},${ay})"/>`;};
+const foot=(cx,cy)=>`<ellipse cx="${cx}" cy="${cy}" rx="14" ry="5" fill="currentColor" opacity=".72"/>`;
+const db=(x,y)=>`<rect x="${x-9}" y="${y-3}" width="18" height="6" rx="3" fill="currentColor" opacity=".6"/><rect x="${x-14}" y="${y-5}" width="5" height="10" rx="2" fill="currentColor" opacity=".82"/><rect x="${x+9}" y="${y-5}" width="5" height="10" rx="2" fill="currentColor" opacity=".82"/>`;
+const dbv=(x,y)=>`<rect x="${x-3}" y="${y-9}" width="6" height="18" rx="3" fill="currentColor" opacity=".6"/><rect x="${x-5}" y="${y-13}" width="10" height="5" rx="2" fill="currentColor" opacity=".82"/><rect x="${x-5}" y="${y+8}" width="10" height="5" rx="2" fill="currentColor" opacity=".82"/>`;
+const bar=(x1,y,x2)=>`<rect x="${x1}" y="${y-4}" width="${x2-x1}" height="8" rx="4" fill="currentColor" opacity=".5"/>`;
+const floor=()=>`<line x1="0" y1="99" x2="210" y2="99" stroke="currentColor" stroke-width="2" opacity=".15"/>`;
 
-// ── Standing base (120×200) ────────────────────────────────────────────────
-// Head(60,16) Torso(60,36-92) Hips(48,92-72,92)
-// thighL(52,92-46,140) calfL(46,140-42,182) ftL(30,182-52,182)
-// thighR(68,92-74,140) calfR(74,140-78,182) ftR(68,182-90,182)
-const LEGS_STD = ()=>`${L(52,92,46,140,9)}${L(46,140,42,182,7)}${L(68,92,74,140,9)}${L(74,140,78,182,7)}${L(30,182,52,182,5)}${L(68,182,90,182,5)}`;
-const TORSO_STD = ()=>`${C(60,16,11)}${L(60,27,60,36,5)}${L(60,36,60,92,11)}${L(48,92,72,92,8)}`;
+// Standard pieces — standing figure centered at x=60 in 120×200
+// Head(60,18) Torso top(60,32) bottom(60,86) ShoulderL(46,44) ShoulderR(74,44)
+const H=hd(60,18);
+const T=torso(60,32,54);
+const L=()=>seg(50,86,44,132,9)+seg(44,132,40,174,7)+foot(40,179)+seg(70,86,76,132,9)+seg(76,132,80,174,7)+foot(80,179);
+const AR=()=>seg(46,44,32,76,7)+seg(32,76,28,102,6)+seg(74,44,88,76,7)+seg(88,76,92,102,6); // arms at rest
+const STD=(extra='')=>svg('0 0 120 200',H+T+AR()+L()+extra);
 
-// ── Standard standing figure with given arm coords ────────────────────────
-const S=(shLx,shLy,elLx,elLy,wrLx,wrLy,shRx,shRy,elRx,elRy,wrRx,wrRy,extra='')=>
-  `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}${LEGS_STD()}
-  ${L(shLx,shLy,elLx,elLy,8)}${L(elLx,elLy,wrLx,wrLy,6)}
-  ${L(shRx,shRy,elRx,elRy,8)}${L(elRx,elRy,wrRx,wrRy,6)}
-  ${extra}</svg>`;
+// Hanging figure base (120×220)
+const HANG_BASE=(armLx,armLy,armRx,armRy,bodyY)=>
+  bar(12,8,108)+
+  `<ellipse cx="${armLx}" cy="14" rx="9" ry="5" fill="currentColor" opacity=".82"/>` +
+  `<ellipse cx="${armRx}" cy="14" rx="9" ry="5" fill="currentColor" opacity=".82"/>` +
+  seg(armLx,14,armLy[0],armLy[1],7)+seg(armRx,14,armRy[0],armRy[1],7)+
+  hd(60,bodyY)+torso(60,bodyY+14,50)+
+  seg(46,bodyY+14,armLy[0],armLy[1],9)+seg(74,bodyY+14,armRy[0],armRy[1],9)+
+  seg(52,bodyY+64,46,bodyY+110,9)+seg(46,bodyY+110,42,bodyY+148,7)+foot(42,bodyY+153)+
+  seg(68,bodyY+64,74,bodyY+110,9)+seg(74,bodyY+110,78,bodyY+148,7)+foot(78,bodyY+153);
 
-// Wide standing (160×200) for arms spread
-const SW=(shLx,shLy,elLx,elLy,wrLx,wrLy,shRx,shRy,elRx,elRy,wrRx,wrRy,extra='')=>
-  `<svg viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
-  ${C(80,16,11)}${L(80,27,80,36,5)}${L(80,36,80,92,11)}${L(68,92,92,92,8)}
-  ${L(72,92,66,140,9)}${L(66,140,62,182,7)}${L(88,92,94,140,9)}${L(94,140,98,182,7)}
-  ${L(50,182,72,182,5)}${L(88,182,110,182,5)}
-  ${L(shLx,shLy,elLx,elLy,8)}${L(elLx,elLy,wrLx,wrLy,6)}
-  ${L(shRx,shRy,elRx,elRy,8)}${L(elRx,elRy,wrRx,wrRy,6)}
-  ${extra}</svg>`;
+// Hinge base — bent-over position (160×165)
+const HINGE=(extra)=>svg('0 0 165 165',
+  hd(22,26)+seg(22,40,42,48,8)+
+  `<rect x="36" y="38" width="104" height="20" rx="10" fill="currentColor" opacity=".88"/>` +
+  seg(130,58,122,106,14)+seg(122,106,118,146,12,.8)+foot(118,151)+
+  seg(148,58,156,106,14)+seg(156,106,160,146,12,.8)+foot(160,151)+extra);
 
 window.POSES = {
 
-// ── JOINT CIRCLES / WARMUP ────────────────────────────────────────────────
-standing_arms_out: { svg: S(
-  42,46, 10,65, 4,90,
-  78,46,110,65,116,90) },
+// ── WARMUP ────────────────────────────────────────────────────────────────
+standing_arms_out: {svg: svg('0 0 160 200',
+  hd(80,18)+torso(80,32,54)+
+  seg(66,44,14,68,7)+seg(14,68,8,94,6)+
+  seg(94,44,146,68,7)+seg(146,68,152,94,6)+
+  seg(70,86,64,132,9)+seg(64,132,60,174,7)+foot(60,179)+
+  seg(90,86,96,132,9)+seg(96,132,100,174,7)+foot(100,179))},
 
-circle_motion: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}${LEGS_STD()}
-  <g>${RA(42,46,-5,35,'3s')}${L(42,46,10,65,8)}${L(10,65,4,90,6)}</g>
-  <g>${RA(78,46,-35,5,'3s')}${L(78,46,110,65,8)}${L(110,65,116,90,6)}</g>
-  <path d="M8 88 Q-2 70 8 54" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3" opacity="0.5"/>
-  <path d="M112 88 Q122 70 112 54" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3" opacity="0.5"/>
-</svg>` },
+circle_motion: {svg: svg('0 0 160 200',
+  hd(80,18)+torso(80,32,54)+
+  seg(66,44,12,66,7)+seg(12,66,8,92,6)+
+  seg(94,44,148,66,7)+seg(148,66,152,92,6)+
+  seg(70,86,64,132,9)+seg(64,132,60,174,7)+foot(60,179)+
+  seg(90,86,96,132,9)+seg(96,132,100,174,7)+foot(100,179)+
+  `<path d="M8 90 Q-4 64 8 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="5 3" opacity=".5"/>` +
+  `<path d="M152 90 Q164 64 152 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="5 3" opacity=".5"/>`)},
 
-arm_swing: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}${LEGS_STD()}
-  <g>${RA(42,46,-40,20,'2s')}${L(42,46,20,68,8)}${L(20,68,14,94,6)}</g>
-  <g>${RA(78,46,-20,40,'2s')}${L(78,46,100,68,8)}${L(100,68,106,94,6)}</g>
-</svg>` },
+arm_swing: {svg: STD()},
+crossbody: {svg: svg('0 0 120 200', H+T+
+  seg(46,44,72,62,7)+seg(72,62,82,76,6)+
+  seg(74,44,48,60,7)+seg(48,60,38,74,6)+L())},
 
-crossbody: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}${LEGS_STD()}
-  <g>${RA(42,46,-35,15,'2.5s')}${L(42,46,68,62,8)}${L(68,62,80,74,6)}</g>
-  <g>${RA(78,46,-15,35,'2.5s')}${L(78,46,52,62,8)}${L(52,62,40,74,6)}</g>
-</svg>` },
+// ── PUSH-UPS (side view 210×105) ─────────────────────────────────────────
+pushup_top: {svg: svg('0 0 210 105',
+  hd(192,26)+seg(192,40,172,44,8)+
+  `<rect x="42" y="36" width="135" height="22" rx="11" fill="currentColor" opacity=".88"/>` +
+  `<ellipse cx="56" cy="47" rx="22" ry="14" fill="currentColor" opacity=".8"/>` +
+  seg(148,38,148,90,8)+seg(128,40,128,92,8,.7)+
+  seg(36,46,10,58,13)+seg(10,58,4,64,11,.8)+foot(4,70)+foot(16,72)+
+  floor())},
 
-// ── PUSH-UPS (side view 200×110) ──────────────────────────────────────────
-pushup_top: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
-  ${C(22,22,10)}${L(22,32,30,40,5)}
-  ${L(30,40,155,52,11)}
-  <g>${L(42,42,44,82,8)}${L(44,82,42,92,6)}</g>
-  <g>${L(52,43,54,83,8)}${L(54,83,52,93,6)}</g>
-  ${L(155,52,168,58,9)}${L(168,58,174,62,7)}
-  ${L(162,53,175,59,9)}${L(175,59,181,63,7)}
-  <line x1="0" y1="94" x2="200" y2="94" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+pushup_bottom: {svg: svg('0 0 210 105',
+  hd(192,48)+seg(192,62,172,66,8)+
+  `<rect x="42" y="58" width="135" height="22" rx="11" fill="currentColor" opacity=".88"/>` +
+  `<ellipse cx="56" cy="69" rx="22" ry="14" fill="currentColor" opacity=".8"/>` +
+  seg(148,58,132,80,8)+seg(132,80,150,96,7)+
+  seg(128,60,114,80,8,.7)+seg(114,80,130,96,7,.65)+
+  seg(36,68,10,80,13)+seg(10,80,4,86,11,.8)+foot(4,92)+foot(16,94)+
+  floor())},
 
-pushup_bottom: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
-  ${C(22,44,10)}${L(22,54,30,62,5)}
-  ${L(30,62,155,74,11)}
-  <g>${L(42,52,30,72,8)}${L(30,72,42,92,6)}</g>
-  <g>${L(52,53,40,73,8)}${L(40,73,52,93,6)}</g>
-  ${L(155,74,168,80,9)}${L(168,80,174,84,7)}
-  ${L(162,75,175,81,9)}${L(175,81,181,85,7)}
-  <line x1="0" y1="94" x2="200" y2="94" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+diamond_top: {svg: svg('0 0 210 105',
+  hd(192,26)+seg(192,40,172,44,8)+
+  `<rect x="42" y="36" width="135" height="22" rx="11" fill="currentColor" opacity=".88"/>` +
+  `<ellipse cx="56" cy="47" rx="22" ry="14" fill="currentColor" opacity=".8"/>` +
+  seg(148,38,152,90,8)+seg(128,40,124,92,8,.7)+
+  `<ellipse cx="138" cy="98" rx="18" ry="6" fill="currentColor" opacity=".72"/>` +
+  seg(36,46,10,58,13)+foot(4,70)+foot(16,72)+floor())},
 
-diamond_top: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
-  ${C(22,22,10)}${L(22,32,30,40,5)}
-  ${L(30,40,155,52,11)}
-  ${L(42,42,50,82,8)}${L(50,82,48,92,6)}
-  ${L(52,43,54,83,8)}${L(54,83,56,92,6)}
-  ${L(155,52,168,58,9)}${L(168,58,174,62,7)}
-  <path d="M47 90 L52 94 L57 90" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-  <line x1="0" y1="94" x2="200" y2="94" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+diamond_bottom: {svg: svg('0 0 210 105',
+  hd(192,48)+seg(192,62,172,66,8)+
+  `<rect x="42" y="58" width="135" height="22" rx="11" fill="currentColor" opacity=".88"/>` +
+  `<ellipse cx="56" cy="69" rx="22" ry="14" fill="currentColor" opacity=".8"/>` +
+  seg(148,58,144,80,8)+seg(144,80,154,96,7)+
+  seg(128,60,124,80,8,.7)+seg(124,80,132,96,7,.65)+
+  `<ellipse cx="143" cy="98" rx="18" ry="6" fill="currentColor" opacity=".72"/>` +
+  seg(36,68,10,80,13)+foot(4,92)+foot(16,94)+floor())},
 
-diamond_bottom: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
-  ${C(22,44,10)}${L(22,54,30,62,5)}
-  ${L(30,62,155,74,11)}
-  ${L(42,52,34,74,8)}${L(34,74,48,91,6)}
-  ${L(52,53,44,75,8)}${L(44,75,58,91,6)}
-  ${L(155,74,168,80,9)}${L(168,80,174,84,7)}
-  <path d="M46 89 L52 94 L58 89" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-  <line x1="0" y1="94" x2="200" y2="94" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+// ── HANGING / PULL-UPS (120×220) ─────────────────────────────────────────
+hang_passive: {svg: svg('0 0 120 220',HANG_BASE(38,17,[40,36],[80,36],50))},
+hang_active:  {svg: svg('0 0 120 220',HANG_BASE(38,17,[38,32],[82,32],46))},
+pullup_hang:  {svg: svg('0 0 120 220',HANG_BASE(36,17,[38,36],[82,36],52))},
+pullup_mid:   {svg: svg('0 0 120 220',HANG_BASE(34,17,[28,26],[92,26],38))},
+pullup_top:   {svg: svg('0 0 120 220',HANG_BASE(32,17,[24,20],[96,20],16))},
+chinup_hang:  {svg: svg('0 0 120 220',HANG_BASE(40,17,[42,36],[78,36],52))},
+chinup_top:   {svg: svg('0 0 120 220',HANG_BASE(36,17,[26,20],[94,20],16))},
 
-// ── DEAD HANGS / PULL-UPS (120×220) ──────────────────────────────────────
-hang_passive: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
-  ${L(38,8,40,28,7)}${L(82,8,80,28,7)}
-  ${C(60,44,11)}${L(60,55,60,62,5)}
-  ${L(60,62,60,112,11)}${L(48,112,72,112,8)}
-  ${L(52,112,46,158,9)}${L(46,158,44,200,7)}${L(68,112,74,158,9)}${L(74,158,76,200,7)}
-  ${L(34,200,54,200,5)}${L(66,200,86,200,5)}
-  ${L(40,28,42,55,8)}${L(78,28,78,55,8)}
-</svg>` },
+// ── FLOOR PRESS (top-down 3/4 view 210×120) ───────────────────────────────
+floor_press_top: {svg: svg('0 0 210 120',
+  hd(188,28)+
+  `<rect x="54" y="20" width="130" height="26" rx="13" fill="currentColor" opacity=".88"/>` +
+  `<ellipse cx="66" cy="33" rx="22" ry="15" fill="currentColor" opacity=".8"/>` +
+  seg(58,46,50,90,14)+seg(50,90,46,108,11,.8)+foot(46,114)+
+  seg(76,46,84,90,14)+seg(84,90,88,108,11,.8)+foot(88,114)+
+  seg(142,22,142,6,8)+db(142,4)+seg(162,22,162,6,8)+db(162,4))},
 
-hang_active: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
-  ${L(38,8,36,26,7)}${L(82,8,84,26,7)}
-  ${C(60,40,11)}${L(60,51,60,58,5)}
-  ${L(60,58,60,106,11)}${L(48,106,72,106,8)}
-  ${L(52,106,46,150,9)}${L(46,150,44,192,7)}${L(68,106,74,150,9)}${L(74,150,76,192,7)}
-  ${L(34,192,54,192,5)}${L(66,192,86,192,5)}
-  ${L(36,26,38,51,8)}${L(84,26,82,51,8)}
-</svg>` },
+floor_press_bottom: {svg: svg('0 0 210 120',
+  hd(188,28)+
+  `<rect x="54" y="20" width="130" height="26" rx="13" fill="currentColor" opacity=".88"/>` +
+  `<ellipse cx="66" cy="33" rx="22" ry="15" fill="currentColor" opacity=".8"/>` +
+  seg(58,46,50,90,14)+seg(50,90,46,108,11,.8)+foot(46,114)+
+  seg(76,46,84,90,14)+seg(84,90,88,108,11,.8)+foot(88,114)+
+  seg(142,22,128,44,8)+seg(128,44,138,58,7)+db(140,60)+
+  seg(162,22,176,44,8)+seg(176,44,166,58,7)+db(164,60))},
 
-pullup_hang: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
-  ${L(35,8,36,28,7)}${L(85,8,84,28,7)}
-  ${C(60,44,11)}${L(60,55,60,62,5)}
-  ${L(60,62,60,112,11)}${L(48,112,72,112,8)}
-  <g>${TA(0,-18,'2s')}
-    ${L(52,112,46,158,9)}${L(46,158,44,202,7)}${L(68,112,74,158,9)}${L(74,158,76,202,7)}
-    ${L(34,202,54,202,5)}${L(66,202,86,202,5)}
-  </g>
-  ${L(36,28,40,55,8)}${L(84,28,80,55,8)}
-</svg>` },
+// ── SHOULDER PRESS ────────────────────────────────────────────────────────
+arnold_start: {svg: STD(db(28,98)+db(92,98))},
 
-pullup_mid: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
-  ${L(34,8,30,22,7)}${L(86,8,90,22,7)}
-  ${C(60,34,11)}${L(60,45,60,52,5)}
-  ${L(60,52,60,100,11)}${L(48,100,72,100,8)}
-  ${L(52,100,46,146,9)}${L(46,146,44,188,7)}${L(68,100,74,146,9)}${L(74,146,76,188,7)}
-  ${L(34,188,54,188,5)}${L(66,188,86,188,5)}
-  ${L(30,22,36,45,8)}${L(90,22,84,45,8)}
-</svg>` },
+arnold_mid: {svg: svg('0 0 120 200',H+T+L()+
+  seg(46,44,22,60,7)+seg(22,60,18,38,6)+db(16,34)+
+  seg(74,44,98,60,7)+seg(98,60,102,38,6)+db(104,34))},
 
-pullup_top: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
-  ${L(32,8,26,18,7)}${L(88,8,94,18,7)}
-  ${C(60,12,11)}${L(60,23,60,30,5)}
-  ${L(60,30,60,78,11)}${L(48,78,72,78,8)}
-  ${L(52,78,46,124,9)}${L(46,124,44,166,7)}${L(68,78,74,124,9)}${L(74,124,76,166,7)}
-  ${L(34,166,54,166,5)}${L(66,166,86,166,5)}
-  ${L(26,18,30,30,8)}${L(94,18,90,30,8)}
-</svg>` },
-
-chinup_hang: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
-  ${L(40,8,42,28,7)}${L(80,8,78,28,7)}
-  ${C(60,44,11)}${L(60,55,60,62,5)}
-  ${L(60,62,60,112,11)}${L(48,112,72,112,8)}
-  ${L(52,112,46,158,9)}${L(46,158,44,202,7)}${L(68,112,74,158,9)}${L(74,158,76,202,7)}
-  ${L(34,202,54,202,5)}${L(66,202,86,202,5)}
-  ${L(42,28,44,55,8)}${L(78,28,76,55,8)}
-</svg>` },
-
-chinup_top: { svg: `<svg viewBox="0 0 120 220" xmlns="http://www.w3.org/2000/svg">
-  <line x1="10" y1="8" x2="110" y2="8" stroke="currentColor" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
-  ${L(36,8,28,18,7)}${L(84,8,92,18,7)}
-  ${C(60,14,11)}${L(60,25,60,32,5)}
-  ${L(60,32,60,80,11)}${L(48,80,72,80,8)}
-  ${L(52,80,46,126,9)}${L(46,126,44,168,7)}${L(68,80,74,126,9)}${L(74,126,76,168,7)}
-  ${L(34,168,54,168,5)}${L(66,168,86,168,5)}
-  ${L(28,18,32,32,8)}${L(92,18,88,32,8)}
-</svg>` },
-
-// ── FLOOR PRESS (top-down 3/4 view, 200×110) ─────────────────────────────
-floor_press_top: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
-  <line x1="0" y1="100" x2="200" y2="100" stroke="currentColor" stroke-width="2" opacity="0.15"/>
-  ${C(100,18,11)}${L(100,29,100,36,5)}
-  ${L(100,36,100,82,11)}${L(88,82,112,82,8)}
-  ${L(62,50,44,50,8)}${L(44,50,36,74,6)}
-  ${L(138,50,156,50,8)}${L(156,50,164,74,6)}
-  ${L(94,82,86,100,9)}${L(86,100,82,100,7)}
-  ${L(106,82,114,100,9)}${L(114,100,118,100,7)}
-  ${DB(36,76)}${DB(164,76)}
-</svg>` },
-
-floor_press_bottom: { svg: `<svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
-  <line x1="0" y1="100" x2="200" y2="100" stroke="currentColor" stroke-width="2" opacity="0.15"/>
-  ${C(100,18,11)}${L(100,29,100,36,5)}
-  ${L(100,36,100,82,11)}${L(88,82,112,82,8)}
-  ${L(62,50,50,70,8)}${L(50,70,50,90,6)}
-  ${L(138,50,150,70,8)}${L(150,70,150,90,6)}
-  ${L(94,82,86,100,9)}${L(86,100,82,100,7)}
-  ${L(106,82,114,100,9)}${L(114,100,118,100,7)}
-  ${DB(50,93)}${DB(150,93)}
-</svg>` },
-
-// ── ARNOLD PRESS ──────────────────────────────────────────────────────────
-arnold_start: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}
-  ${L(52,92,50,130,9)}${L(50,130,50,168,7)}${L(68,92,70,130,9)}${L(70,130,70,168,7)}
-  ${L(38,182,58,182,5)}${L(62,182,82,182,5)}
-  ${L(42,46,28,66,8)}${L(28,66,32,44,6)}
-  ${L(78,46,92,66,8)}${L(92,66,88,44,6)}
-  ${DB(32,44)}${DB(88,44)}
-</svg>` },
-
-arnold_mid: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}
-  ${L(52,92,50,130,9)}${L(50,130,50,168,7)}${L(68,92,70,130,9)}${L(70,130,70,168,7)}
-  ${L(38,182,58,182,5)}${L(62,182,82,182,5)}
-  ${L(42,46,20,60,8)}${L(20,60,16,38,6)}
-  ${L(78,46,100,60,8)}${L(100,60,104,38,6)}
-  ${DB(16,36)}${DB(104,36)}
-</svg>` },
-
-arnold_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}
-  ${L(52,92,50,130,9)}${L(50,130,50,168,7)}${L(68,92,70,130,9)}${L(70,130,70,168,7)}
-  ${L(38,182,58,182,5)}${L(62,182,82,182,5)}
-  <g>${RA(42,46,-140,-90,'3s')}${L(42,46,24,30,8)}${L(24,30,28,6,6)}${DB(28,3)}</g>
-  <g>${RA(78,46,-40,10,'3s')}${L(78,46,96,30,8)}${L(96,30,92,6,6)}${DB(92,3)}</g>
-</svg>` },
+arnold_top: {svg: svg('0 0 120 200',H+T+L()+
+  seg(46,44,30,22,7)+seg(30,22,32,4,6)+db(30,2)+
+  seg(74,44,90,22,7)+seg(90,22,88,4,6)+db(90,2))},
 
 // ── LATERAL RAISE ─────────────────────────────────────────────────────────
-lateral_start: { svg: S(
-  42,46, 28,78, 22,106,
-  78,46, 92,78, 98,106,
-  `${DB(22,106)}${DB(98,106)}`) },
+lateral_start: {svg: STD(db(28,102)+db(92,102))},
 
-lateral_top: { svg: SW(
-  62,46, 18,46, 4,48,
-  98,46,142,46,156,48,
-  `${DB(4,48)}${DB(156,48)}`) },
+lateral_top: {svg: svg('0 0 165 200',
+  hd(82,18)+torso(82,32,54)+
+  seg(68,44,16,46,7)+seg(16,46,2,48,6)+db(0,46)+
+  seg(96,44,148,46,7)+seg(148,46,163,48,6)+db(165,46)+
+  seg(72,86,66,132,9)+seg(66,132,62,174,7)+foot(62,179)+
+  seg(92,86,98,132,9)+seg(98,132,102,174,7)+foot(102,179))},
 
-// ── DB SINGLE-ARM ROW (hinge 160×160) ────────────────────────────────────
-row_start: { svg: `<svg viewBox="0 0 170 160" xmlns="http://www.w3.org/2000/svg">
-  ${C(24,30,10)}${L(24,40,32,50,5)}
-  ${L(32,50,140,72,11)}
-  ${L(68,57,64,100,8)}${L(64,100,62,110,6)}
-  ${L(116,66,112,108,8)}${L(112,108,110,120,6)}
-  ${L(140,72,150,104,9)}${L(150,104,152,130,7)}
-  ${L(60,58,48,90,8)}${L(48,90,42,110,6)}
-  ${DB(42,112)}
-  <line x1="30" y1="132" x2="160" y2="132" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+// ── ROWS (hinged, 165×165) ────────────────────────────────────────────────
+row_start: {svg: HINGE(
+  seg(46,44,42,86,8)+seg(42,86,40,110,6)+db(38,114)+
+  seg(64,44,60,82,8)+seg(60,82,58,104,6))},
 
-row_end: { svg: `<svg viewBox="0 0 170 160" xmlns="http://www.w3.org/2000/svg">
-  ${C(24,30,10)}${L(24,40,32,50,5)}
-  ${L(32,50,140,72,11)}
-  ${L(68,57,64,100,8)}${L(64,100,62,110,6)}
-  ${L(116,66,112,108,8)}${L(112,108,110,120,6)}
-  ${L(140,72,150,104,9)}${L(150,104,152,130,7)}
-  <g>${RA(60,58,-10,40,'2.5s')}${L(60,58,62,34,8)}${L(62,34,72,24,6)}${DB(72,22)}</g>
-  <line x1="30" y1="132" x2="160" y2="132" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+row_end: {svg: HINGE(
+  seg(46,44,60,30,8)+seg(60,30,74,22,6)+db(76,20)+
+  seg(64,44,60,82,8)+seg(60,82,58,104,6))},
 
-// ── REAR DELT FLY (hinge 160×160) ─────────────────────────────────────────
-fly_start: { svg: `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-  ${C(22,28,10)}${L(22,38,30,46,5)}
-  ${L(30,46,130,68,11)}
-  ${L(56,54,52,96,8)}${L(52,96,50,120,6)}
-  ${L(104,64,100,106,8)}${L(100,106,98,130,7)}
-  ${L(56,54,44,78,8)}${L(44,78,40,100,6)}${DB(38,100)}
-  ${L(104,64,116,78,8)}${L(116,78,120,100,6)}${DB(122,100)}
-  <line x1="28" y1="128" x2="148" y2="128" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+// ── REAR DELT FLY ────────────────────────────────────────────────────────
+fly_start: {svg: HINGE(
+  seg(46,44,40,86,8)+seg(40,86,36,108,6)+db(34,112)+
+  seg(82,44,88,86,8)+seg(88,86,92,108,6)+db(94,112))},
 
-fly_end: { svg: `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-  ${C(22,28,10)}${L(22,38,30,46,5)}
-  ${L(30,46,130,68,11)}
-  ${L(56,54,52,96,8)}${L(52,96,50,120,6)}
-  ${L(104,64,100,106,8)}${L(100,106,98,130,7)}
-  <g>${RA(56,54,-30,-65,'2.5s')}${L(56,54,20,48,8)}${L(20,48,10,44,6)}${DB(8,42)}</g>
-  <g>${RA(104,64,30,65,'2.5s')}${L(104,64,140,58,8)}${L(140,58,152,54,6)}${DB(154,52)}</g>
-  <line x1="28" y1="128" x2="148" y2="128" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+fly_end: {svg: HINGE(
+  seg(46,44,10,40,8)+seg(10,40,2,38,6)+db(0,36)+
+  seg(82,44,118,40,8)+seg(118,40,128,38,6)+db(130,36))},
 
 // ── TRICEP KICKBACK ───────────────────────────────────────────────────────
-kickback_start: { svg: `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-  ${C(22,28,10)}${L(22,38,30,46,5)}
-  ${L(30,46,130,68,11)}
-  ${L(56,54,52,96,8)}${L(52,96,50,120,6)}
-  ${L(104,64,100,106,8)}${L(100,106,98,130,7)}
-  ${L(56,54,44,78,8)}${L(44,78,30,98,6)}${DB(26,98)}
-  <line x1="28" y1="128" x2="148" y2="128" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+kickback_start: {svg: HINGE(
+  seg(46,44,38,76,8)+seg(38,76,28,98,6)+db(26,102)+
+  seg(64,44,60,82,8))},
 
-kickback_end: { svg: `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-  ${C(22,28,10)}${L(22,38,30,46,5)}
-  ${L(30,46,130,68,11)}
-  ${L(56,54,52,96,8)}${L(52,96,50,120,6)}
-  ${L(104,64,100,106,8)}${L(100,106,98,130,7)}
-  <g>${RA(56,54,-10,30,'2.5s')}${L(56,54,44,78,8)}${L(44,78,70,60,6)}${DB(74,58)}</g>
-  <line x1="28" y1="128" x2="148" y2="128" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+kickback_end: {svg: HINGE(
+  seg(46,44,38,76,8)+seg(38,76,62,58,6)+db(66,56)+
+  seg(64,44,60,82,8))},
 
 // ── CURLS ─────────────────────────────────────────────────────────────────
-hammer_start: { svg: S(
-  42,46, 28,78, 22,106,
-  78,46, 92,78, 98,106,
-  `${DBV(22,106)}${DBV(98,106)}`) },
+hammer_start: {svg: STD(dbv(28,102)+dbv(92,102))},
 
-hammer_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}${LEGS_STD()}
-  ${L(42,46,28,78,8)}
-  <g>${RA(28,78,-70,-20,'2.5s')}${L(28,78,16,52,6)}${DBV(14,46)}</g>
-  ${L(78,46,92,78,8)}
-  <g>${RA(92,78,70,20,'2.5s')}${L(92,78,104,52,6)}${DBV(106,46)}</g>
-</svg>` },
+hammer_top: {svg: svg('0 0 120 200',H+T+L()+
+  seg(46,44,32,76,7)+seg(32,76,36,52,6)+dbv(34,46)+
+  seg(74,44,88,76,7)+seg(88,76,84,52,6)+dbv(86,46))},
 
-reverse_start: { svg: S(
-  42,46, 28,78, 22,106,
-  78,46, 92,78, 98,106,
-  `${DB(22,106)}${DB(98,106)}`) },
+reverse_start: {svg: STD(db(28,102)+db(92,102))},
 
-reverse_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}${LEGS_STD()}
-  ${L(42,46,28,78,8)}
-  <g>${RA(28,78,-70,-20,'2.5s')}${L(28,78,16,52,6)}${DB(14,46)}</g>
-  ${L(78,46,92,78,8)}
-  <g>${RA(92,78,70,20,'2.5s')}${L(92,78,104,52,6)}${DB(106,46)}</g>
-</svg>` },
+reverse_top: {svg: svg('0 0 120 200',H+T+L()+
+  seg(46,44,32,76,7)+seg(32,76,36,52,6)+db(34,48)+
+  seg(74,44,88,76,7)+seg(88,76,84,52,6)+db(86,48))},
 
-// ── WRIST CURLS (seated 140×180) ──────────────────────────────────────────
-wrist_curl_start: { svg: `<svg viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
-  ${C(70,18,11)}${L(70,29,70,38,5)}${L(70,38,70,88,11)}${L(58,88,82,88,8)}
-  ${L(58,88,50,128,9)}${L(50,128,48,160,7)}${L(72,88,80,128,9)}${L(80,128,82,160,7)}
-  <line x1="24" y1="160" x2="116" y2="160" stroke="currentColor" stroke-width="3" opacity="0.25"/>
-  ${L(42,46,30,88,8)}${L(30,88,28,128,6)}
-  ${L(98,46,110,88,8)}${L(110,88,112,128,6)}
-  <g>${RA(28,120,10,-20,'2s')}${L(28,120,28,130,6)}${DB(26,132)}</g>
-  <g>${RA(112,120,-10,20,'2s')}${L(112,120,112,130,6)}${DB(114,132)}</g>
-</svg>` },
+// ── WRIST CURLS (seated 145×175) ─────────────────────────────────────────
+wrist_curl_start: {svg: svg('0 0 145 175',
+  hd(72,20)+torso(72,34,48)+
+  seg(58,38,44,74,7)+seg(44,74,38,116,6)+db(36,120)+
+  seg(86,38,100,74,7)+seg(100,74,106,116,6)+db(108,120)+
+  seg(62,82,50,118,13)+seg(50,118,48,155,11,.8)+foot(48,160)+
+  seg(82,82,94,118,13)+seg(94,118,96,155,11,.8)+foot(96,160)+
+  `<rect x="18" y="85" width="110" height="8" rx="4" fill="currentColor" opacity=".18"/>` +
+  `<line x1="16" y1="163" x2="130" y2="163" stroke="currentColor" stroke-width="2" opacity=".14"/>`)},
 
-wrist_curl_end: { svg: `<svg viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
-  ${C(70,18,11)}${L(70,29,70,38,5)}${L(70,38,70,88,11)}${L(58,88,82,88,8)}
-  ${L(58,88,50,128,9)}${L(50,128,48,160,7)}${L(72,88,80,128,9)}${L(80,128,82,160,7)}
-  <line x1="24" y1="160" x2="116" y2="160" stroke="currentColor" stroke-width="3" opacity="0.25"/>
-  ${L(42,46,30,88,8)}${L(30,88,28,128,6)}
-  ${L(98,46,110,88,8)}${L(110,88,112,128,6)}
-  <g>${RA(28,120,-20,10,'2s')}${L(28,120,24,112,6)}${DB(22,110)}</g>
-  <g>${RA(112,120,20,-10,'2s')}${L(112,120,116,112,6)}${DB(118,110)}</g>
-</svg>` },
+wrist_curl_end: {svg: svg('0 0 145 175',
+  hd(72,20)+torso(72,34,48)+
+  seg(58,38,44,74,7)+seg(44,74,38,112,6)+seg(38,112,32,102,6)+db(30,100)+
+  seg(86,38,100,74,7)+seg(100,74,106,112,6)+seg(106,112,112,102,6)+db(114,100)+
+  seg(62,82,50,118,13)+seg(50,118,48,155,11,.8)+foot(48,160)+
+  seg(82,82,94,118,13)+seg(94,118,96,155,11,.8)+foot(96,160)+
+  `<rect x="18" y="85" width="110" height="8" rx="4" fill="currentColor" opacity=".18"/>` +
+  `<line x1="16" y1="163" x2="130" y2="163" stroke="currentColor" stroke-width="2" opacity=".14"/>`)},
 
-reverse_curl_start: { svg: `<svg viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
-  ${C(70,18,11)}${L(70,29,70,38,5)}${L(70,38,70,88,11)}${L(58,88,82,88,8)}
-  ${L(58,88,50,128,9)}${L(50,128,48,160,7)}${L(72,88,80,128,9)}${L(80,128,82,160,7)}
-  <line x1="24" y1="160" x2="116" y2="160" stroke="currentColor" stroke-width="3" opacity="0.25"/>
-  ${L(42,46,30,88,8)}${L(30,88,28,128,6)}
-  ${L(98,46,110,88,8)}${L(110,88,112,128,6)}
-  ${DB(26,130)}${DB(114,130)}
-</svg>` },
+reverse_curl_start: {svg: svg('0 0 145 175',
+  hd(72,20)+torso(72,34,48)+
+  seg(58,38,44,74,7)+seg(44,74,38,118,6)+db(36,122)+
+  seg(86,38,100,74,7)+seg(100,74,106,118,6)+db(108,122)+
+  seg(62,82,50,118,13)+seg(50,118,48,155,11,.8)+foot(48,160)+
+  seg(82,82,94,118,13)+seg(94,118,96,155,11,.8)+foot(96,160)+
+  `<rect x="18" y="85" width="110" height="8" rx="4" fill="currentColor" opacity=".18"/>`)},
 
-reverse_curl_end: { svg: `<svg viewBox="0 0 140 180" xmlns="http://www.w3.org/2000/svg">
-  ${C(70,18,11)}${L(70,29,70,38,5)}${L(70,38,70,88,11)}${L(58,88,82,88,8)}
-  ${L(58,88,50,128,9)}${L(50,128,48,160,7)}${L(72,88,80,128,9)}${L(80,128,82,160,7)}
-  <line x1="24" y1="160" x2="116" y2="160" stroke="currentColor" stroke-width="3" opacity="0.25"/>
-  ${L(42,46,30,88,8)}${L(30,88,22,108,6)}${DB(20,108)}
-  ${L(98,46,110,88,8)}${L(110,88,118,108,6)}${DB(120,108)}
-</svg>` },
+reverse_curl_end: {svg: svg('0 0 145 175',
+  hd(72,20)+torso(72,34,48)+
+  seg(58,38,44,74,7)+seg(44,74,40,108,6)+db(38,106)+
+  seg(86,38,100,74,7)+seg(100,74,104,108,6)+db(106,106)+
+  seg(62,82,50,118,13)+seg(50,118,48,155,11,.8)+foot(48,160)+
+  seg(82,82,94,118,13)+seg(94,118,96,155,11,.8)+foot(96,160)+
+  `<rect x="18" y="85" width="110" height="8" rx="4" fill="currentColor" opacity=".18"/>`)},
 
 // ── GRIP ──────────────────────────────────────────────────────────────────
-grip_open: { svg: `<svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
-  ${L(30,100,30,40,8)}
-  ${L(30,40,20,16,5)}${L(30,40,26,14,5)}${L(30,40,32,14,5)}${L(30,40,38,15,5)}${L(30,40,44,18,5)}
-  ${L(30,60,50,85,7)}
-  <ellipse cx="55" cy="90" rx="8" ry="5" fill="currentColor" opacity="0.5"/>
-</svg>` },
+grip_open: {svg: svg('0 0 80 120',
+  seg(40,100,40,52,12)+
+  seg(40,52,22,22,5)+seg(40,52,28,20,5)+seg(40,52,38,18,5)+seg(40,52,48,19,5)+seg(40,52,54,22,5)+
+  seg(40,68,62,97,9)+`<ellipse cx="68" cy="101" rx="10" ry="6" fill="currentColor" opacity=".55"/>`)},
 
-grip_closed: { svg: `<svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
-  ${L(30,100,30,40,8)}
-  <g>${RA(30,40,-20,20,'1.5s')}
-    ${L(30,40,22,28,5)}${L(30,40,26,26,5)}${L(30,40,32,26,5)}${L(30,40,38,27,5)}${L(30,40,43,30,5)}
-  </g>
-  ${L(30,60,50,85,7)}
-  <ellipse cx="55" cy="90" rx="8" ry="5" fill="currentColor" opacity="0.5"/>
-</svg>` },
+grip_closed: {svg: svg('0 0 80 120',
+  seg(40,100,40,52,12)+
+  seg(40,52,24,30,5)+seg(40,52,30,28,5)+seg(40,52,40,28,5)+seg(40,52,50,29,5)+seg(40,52,56,32,5)+
+  seg(40,68,62,97,9)+`<ellipse cx="68" cy="101" rx="10" ry="6" fill="currentColor" opacity=".55"/>`)},
 
-// ── FARMER'S CARRY ────────────────────────────────────────────────────────
-farmers_stand: { svg: S(
-  42,46, 30,78, 24,106,
-  78,46, 90,78, 96,106,
-  `${DB(24,106)}${DB(96,106)}`) },
+// ── FARMER'S CARRY ───────────────────────────────────────────────────────
+farmers_stand: {svg: STD(db(28,102)+db(92,102))},
 
-farmers_walk: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}
-  ${L(42,46,28,78,8)}${L(28,78,22,106,6)}${DB(22,106)}
-  ${L(78,46,92,78,8)}${L(92,78,98,106,6)}${DB(98,106)}
-  ${L(52,92,42,138,9)}${L(42,138,36,182,7)}
-  ${L(68,92,80,138,9)}${L(80,138,84,162,7)}
-  ${L(24,182,46,182,5)}${L(72,162,92,162,5)}
-</svg>` },
+farmers_walk: {svg: svg('0 0 120 200',H+T+
+  seg(46,44,32,76,7)+seg(32,76,28,102,6)+db(26,104)+
+  seg(74,44,88,76,7)+seg(88,76,92,102,6)+db(94,104)+
+  seg(50,86,40,130,9)+seg(40,130,34,174,7)+foot(34,179)+
+  seg(70,86,84,130,9)+seg(84,130,90,162,7)+foot(90,167))},
 
 // ── SQUATS ────────────────────────────────────────────────────────────────
-squat_stand: { svg: S(
-  42,46, 30,72, 24,98,
-  78,46, 90,72, 96,98) },
+squat_stand: {svg: STD()},
 
-squat_bottom: { svg: `<svg viewBox="0 0 130 200" xmlns="http://www.w3.org/2000/svg">
-  ${C(65,26,11)}${L(65,37,65,46,5)}
-  ${L(65,46,65,76,11)}${L(53,76,77,76,8)}
-  ${L(47,46,18,62,8)}${L(18,62,14,88,6)}
-  ${L(83,46,112,62,8)}${L(112,62,116,88,6)}
-  ${L(56,76,34,110,9)}${L(34,110,30,140,7)}
-  ${L(74,76,96,110,9)}${L(96,110,100,140,7)}
-  ${L(18,140,44,140,5)}${L(86,140,112,140,5)}
-</svg>` },
+squat_bottom: {svg: svg('0 0 135 200',
+  hd(67,32)+torso(67,46,38,14,12)+
+  seg(53,50,32,64,7)+seg(32,64,18,76,6)+
+  seg(81,50,102,64,7)+seg(102,64,116,76,6)+
+  `<ellipse cx="67" cy="86" rx="28" ry="13" fill="currentColor" opacity=".8"/>` +
+  seg(54,86,30,112,13)+seg(30,112,26,140,11,.8)+foot(26,145)+
+  seg(80,86,104,112,13)+seg(104,112,108,140,11,.8)+foot(108,145))},
 
-// ── GOBLET SQUAT ──────────────────────────────────────────────────────────
-goblet_hold: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}${LEGS_STD()}
-  ${L(42,46,36,66,8)}${L(36,66,42,52,6)}
-  ${L(78,46,84,66,8)}${L(84,66,78,52,6)}
-  ${DBV(60,44)}
-</svg>` },
+// ── GOBLET SQUAT ─────────────────────────────────────────────────────────
+goblet_hold: {svg: svg('0 0 120 200',H+T+L()+
+  seg(46,44,36,64,7)+seg(36,64,46,50,6)+
+  seg(74,44,84,64,7)+seg(84,64,74,50,6)+dbv(60,42))},
 
-goblet_bottom: { svg: `<svg viewBox="0 0 130 200" xmlns="http://www.w3.org/2000/svg">
-  ${C(65,28,11)}${L(65,39,65,48,5)}
-  ${L(65,48,65,78,11)}${L(53,78,77,78,8)}
-  ${L(47,48,26,64,8)}${L(26,64,26,74,6)}
-  ${L(83,48,104,64,8)}${L(104,64,104,74,6)}
-  ${DBV(65,58)}
-  ${L(56,78,34,112,9)}${L(34,112,30,142,7)}
-  ${L(74,78,96,112,9)}${L(96,112,100,142,7)}
-  ${L(18,142,46,142,5)}${L(86,142,114,142,5)}
-</svg>` },
+goblet_bottom: {svg: svg('0 0 135 200',
+  hd(67,32)+torso(67,46,38,14,12)+
+  seg(53,50,34,62,7)+seg(34,62,44,50,6)+
+  seg(81,50,100,62,7)+seg(100,62,90,50,6)+dbv(67,42)+
+  `<ellipse cx="67" cy="86" rx="28" ry="13" fill="currentColor" opacity=".8"/>` +
+  seg(54,86,30,112,13)+seg(30,112,26,140,11,.8)+foot(26,145)+
+  seg(80,86,104,112,13)+seg(104,112,108,140,11,.8)+foot(108,145))},
 
-// ── ROMANIAN DEADLIFT ─────────────────────────────────────────────────────
-rdl_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}${LEGS_STD()}
-  ${L(42,46,30,78,8)}${L(30,78,28,106,6)}${DB(28,106)}
-  ${L(78,46,90,78,8)}${L(90,78,92,106,6)}${DB(92,106)}
-</svg>` },
+// ── RDL ──────────────────────────────────────────────────────────────────
+rdl_top: {svg: STD(db(28,102)+db(92,102))},
 
-rdl_bottom: { svg: `<svg viewBox="0 0 160 180" xmlns="http://www.w3.org/2000/svg">
-  ${C(24,26,10)}${L(24,36,32,44,5)}
-  ${L(32,44,130,70,11)}
-  ${L(58,54,52,100,9)}${L(52,100,50,130,7)}
-  ${L(102,64,98,110,9)}${L(98,110,96,140,7)}
-  ${L(36,46,32,68,8)}${L(32,68,30,90,6)}${DB(28,90)}
-  ${L(60,55,62,68,8)}${L(62,68,64,90,6)}${DB(62,92)}
-  ${L(36,130,58,130,5)}${L(80,140,104,140,5)}
-</svg>` },
+rdl_bottom: {svg: svg('0 0 165 170',
+  hd(22,26)+seg(22,40,42,48,8)+
+  `<rect x="36" y="38" width="108" height="20" rx="10" fill="currentColor" opacity=".88"/>` +
+  seg(50,42,46,90,8)+seg(46,90,44,116,6)+db(42,120)+
+  seg(70,44,74,90,8)+seg(74,90,76,116,6)+db(78,120)+
+  seg(126,58,120,108,14)+seg(120,108,116,150,12,.8)+foot(116,155)+
+  seg(144,58,150,108,14)+seg(150,108,154,150,12,.8)+foot(154,155))},
 
-// ── REVERSE LUNGE ─────────────────────────────────────────────────────────
-lunge_stand: { svg: S(
-  42,46, 28,78, 22,106,
-  78,46, 92,78, 98,106) },
+// ── LUNGES ────────────────────────────────────────────────────────────────
+lunge_stand: {svg: STD()},
 
-lunge_down: { svg: `<svg viewBox="0 0 130 200" xmlns="http://www.w3.org/2000/svg">
-  ${C(65,22,11)}${L(65,33,65,42,5)}
-  ${L(65,42,65,82,11)}${L(53,82,77,82,8)}
-  ${L(47,42,30,62,8)}${L(30,62,24,88,6)}
-  ${L(83,42,100,62,8)}${L(100,62,106,88,6)}
-  ${L(58,82,48,122,9)}${L(48,122,44,152,7)}
-  ${L(72,82,96,122,9)}${L(96,122,100,152,7)}
-  ${L(32,152,54,152,5)}${L(88,152,112,152,5)}
-</svg>` },
+lunge_down: {svg: svg('0 0 130 200',
+  hd(65,26)+torso(65,40,50)+
+  seg(51,44,38,72,7)+seg(38,72,34,98,6)+
+  seg(79,44,92,72,7)+seg(92,72,96,98,6)+
+  seg(58,90,48,132,13)+seg(48,132,44,168,11,.8)+foot(44,173)+
+  seg(72,90,96,124,13)+seg(96,124,100,160,11,.8)+foot(100,165))},
 
-// ── BULGARIAN SPLIT SQUAT ─────────────────────────────────────────────────
-bss_setup: { svg: `<svg viewBox="0 0 150 200" xmlns="http://www.w3.org/2000/svg">
-  ${C(65,22,11)}${L(65,33,65,42,5)}
-  ${L(65,42,65,82,11)}${L(53,82,77,82,8)}
-  ${L(47,42,30,62,8)}${L(30,62,24,88,6)}${DB(24,88)}
-  ${L(83,42,100,62,8)}${L(100,62,106,88,6)}${DB(106,88)}
-  ${L(58,82,48,130,9)}${L(48,130,44,168,7)}
-  ${L(72,82,90,110,9)}${L(90,110,108,128,7)}
-  ${L(32,168,54,168,5)}
-  <rect x="96" y="128" width="40" height="14" rx="3" fill="currentColor" opacity="0.25"/>
-</svg>` },
+// ── BULGARIAN SPLIT SQUAT ────────────────────────────────────────────────
+bss_setup: {svg: svg('0 0 158 205',
+  hd(65,26)+torso(65,40,50)+
+  seg(51,44,34,68,7)+seg(34,68,30,94,6)+db(28,98)+
+  seg(79,44,96,68,7)+seg(96,68,100,94,6)+db(102,98)+
+  seg(58,90,48,136,13)+seg(48,136,44,172,11,.8)+foot(44,177)+
+  seg(72,90,96,122,13)+seg(96,122,108,142,11,.8)+
+  `<rect x="100" y="142" width="46" height="12" rx="4" fill="currentColor" opacity=".28"/>`)},
 
-bss_bottom: { svg: `<svg viewBox="0 0 150 200" xmlns="http://www.w3.org/2000/svg">
-  ${C(65,32,11)}${L(65,43,65,52,5)}
-  ${L(65,52,65,92,11)}${L(53,92,77,92,8)}
-  ${L(47,52,30,72,8)}${L(30,72,24,98,6)}${DB(24,98)}
-  ${L(83,52,100,72,8)}${L(100,72,106,98,6)}${DB(106,98)}
-  ${L(58,92,48,140,9)}${L(48,140,44,178,7)}
-  ${L(72,92,90,120,9)}${L(90,120,108,138,7)}
-  ${L(32,178,54,178,5)}
-  <rect x="96" y="138" width="40" height="14" rx="3" fill="currentColor" opacity="0.25"/>
-</svg>` },
+bss_bottom: {svg: svg('0 0 158 205',
+  hd(65,38)+torso(65,52,50)+
+  seg(51,56,34,80,7)+seg(34,80,30,106,6)+db(28,110)+
+  seg(79,56,96,80,7)+seg(96,80,100,106,6)+db(102,110)+
+  seg(58,102,48,148,13)+seg(48,148,44,184,11,.8)+foot(44,189)+
+  seg(72,102,96,134,13)+seg(96,134,108,154,11,.8)+
+  `<rect x="100" y="154" width="46" height="12" rx="4" fill="currentColor" opacity=".28"/>`)},
 
-// ── CALF RAISES ───────────────────────────────────────────────────────────
-calf_bottom: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}
-  ${L(42,46,28,78,8)}${L(28,78,24,106,6)}
-  ${L(78,46,92,78,8)}${L(92,78,96,106,6)}
-  ${L(52,92,46,140,9)}${L(46,140,42,190,7)}
-  ${L(68,92,74,140,9)}${L(74,140,78,190,7)}
-  ${L(28,190,52,190,5)}${L(68,190,92,190,5)}
-  <line x1="20" y1="190" x2="100" y2="190" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+// ── CALF RAISES ──────────────────────────────────────────────────────────
+calf_bottom: {svg: svg('0 0 120 200',H+T+AR()+
+  seg(50,86,44,132,9)+seg(44,132,40,174,7)+foot(40,179)+
+  seg(70,86,76,132,9)+seg(76,132,80,174,7)+foot(80,179)+
+  `<line x1="10" y1="182" x2="110" y2="182" stroke="currentColor" stroke-width="2" opacity=".14"/>`)},
 
-calf_top: { svg: `<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
-  ${TORSO_STD()}
-  ${L(42,46,28,78,8)}${L(28,78,24,106,6)}
-  ${L(78,46,92,78,8)}${L(92,78,96,106,6)}
-  <g>${TA(0,-12,'2s')}
-    ${L(52,92,46,140,9)}${L(46,140,44,176,7)}
-    ${L(68,92,74,140,9)}${L(74,140,76,176,7)}
-    ${L(34,176,52,176,5)}${L(68,176,86,176,5)}
-  </g>
-  <line x1="20" y1="188" x2="100" y2="188" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-</svg>` },
+calf_top: {svg: svg('0 0 120 200',H+T+AR()+
+  seg(50,86,44,128,9)+seg(44,128,42,165,7)+
+  `<ellipse cx="48" cy="168" rx="10" ry="5" fill="currentColor" opacity=".82"/>` +
+  seg(70,86,76,128,9)+seg(76,128,78,165,7)+
+  `<ellipse cx="72" cy="168" rx="10" ry="5" fill="currentColor" opacity=".82"/>` +
+  `<line x1="10" y1="174" x2="110" y2="174" stroke="currentColor" stroke-width="2" opacity=".14"/>`)},
 
-// ── SEATED CALF RAISE (seated 140×180) ───────────────────────────────────
-seated_calf_down: { svg: `<svg viewBox="0 0 150 170" xmlns="http://www.w3.org/2000/svg">
-  ${C(75,20,11)}${L(75,31,75,40,5)}${L(75,40,75,84,11)}${L(63,84,87,84,8)}
-  ${L(55,46,40,82,8)}${L(40,82,36,110,6)}
-  ${L(95,46,110,82,8)}${L(110,82,114,110,6)}
-  <rect x="20" y="84" width="110" height="10" rx="4" fill="currentColor" opacity="0.2"/>
-  ${L(60,84,44,124,9)}${L(44,124,44,152,7)}
-  ${L(90,84,106,124,9)}${L(106,124,106,152,7)}
-  ${L(30,152,60,152,5)}${L(92,152,122,152,5)}
-  ${DB(75,76)}
-</svg>` },
+// ── SEATED CALF RAISE ────────────────────────────────────────────────────
+seated_calf_down: {svg: svg('0 0 148 175',
+  hd(74,20)+torso(74,34,48)+
+  seg(60,38,46,74,7)+seg(46,74,42,108,6)+
+  seg(88,38,102,74,7)+seg(102,74,106,108,6)+
+  `<rect x="20" y="88" width="110" height="9" rx="4" fill="currentColor" opacity=".2"/>` +
+  seg(64,88,48,92,13)+seg(48,92,32,96,12,.8)+
+  seg(84,88,100,92,13)+seg(100,92,116,96,12,.8)+
+  seg(32,96,28,140,12)+seg(28,140,26,160,10,.8)+foot(26,165)+
+  seg(116,96,120,140,12)+seg(120,140,122,160,10,.8)+foot(122,165)+
+  dbv(74,80)+`<line x1="12" y1="168" x2="136" y2="168" stroke="currentColor" stroke-width="2" opacity=".14"/>`)},
 
-seated_calf_up: { svg: `<svg viewBox="0 0 150 170" xmlns="http://www.w3.org/2000/svg">
-  ${C(75,20,11)}${L(75,31,75,40,5)}${L(75,40,75,84,11)}${L(63,84,87,84,8)}
-  ${L(55,46,40,82,8)}${L(40,82,36,110,6)}
-  ${L(95,46,110,82,8)}${L(110,82,114,110,6)}
-  <rect x="20" y="84" width="110" height="10" rx="4" fill="currentColor" opacity="0.2"/>
-  ${L(60,84,44,124,9)}${L(44,124,44,148,7)}
-  ${L(90,84,106,124,9)}${L(106,124,106,148,7)}
-  <g>${TA(0,-10,'2s')}
-    ${L(32,148,56,148,5)}${L(90,148,114,148,5)}
-  </g>
-  ${DB(75,76)}
-</svg>` },
+seated_calf_up: {svg: svg('0 0 148 175',
+  hd(74,20)+torso(74,34,48)+
+  seg(60,38,46,74,7)+seg(46,74,42,108,6)+
+  seg(88,38,102,74,7)+seg(102,74,106,108,6)+
+  `<rect x="20" y="88" width="110" height="9" rx="4" fill="currentColor" opacity=".2"/>` +
+  seg(64,88,48,92,13)+seg(48,92,32,96,12,.8)+
+  seg(84,88,100,92,13)+seg(100,92,116,96,12,.8)+
+  seg(32,96,28,136,12)+seg(28,136,30,154,10,.8)+
+  `<ellipse cx="36" cy="156" rx="10" ry="5" fill="currentColor" opacity=".84"/>` +
+  seg(116,96,120,136,12)+seg(120,136,118,154,10,.8)+
+  `<ellipse cx="112" cy="156" rx="10" ry="5" fill="currentColor" opacity=".84"/>` +
+  dbv(74,80)+`<line x1="12" y1="162" x2="136" y2="162" stroke="currentColor" stroke-width="2" opacity=".14"/>`)},
 
-// ── OVERHEAD TRICEP EXTENSION ─────────────────────────────────────────────
-overhead_ext_top: { svg: `<svg viewBox="0 0 120 210" xmlns="http://www.w3.org/2000/svg">
-  ${C(60,18,11)}${L(60,29,60,38,5)}${L(60,38,60,94,11)}${L(48,94,72,94,8)}
-  ${L(52,94,46,140,9)}${L(46,140,42,184,7)}${L(68,94,74,140,9)}${L(74,140,78,184,7)}
-  ${L(30,184,52,184,5)}${L(68,184,90,184,5)}
-  ${L(42,48,36,24,8)}${L(36,24,48,6,6)}
-  ${L(78,48,84,24,8)}${L(84,24,72,6,6)}
-  ${DBV(60,3)}
-</svg>` },
+// ── OVERHEAD TRICEP EXTENSION ────────────────────────────────────────────
+overhead_ext_top: {svg: svg('0 0 120 210',H+T+L()+
+  seg(46,44,34,22,7)+seg(34,22,36,4,6)+
+  seg(74,44,86,22,7)+seg(86,22,84,4,6)+dbv(60,2))},
 
-overhead_ext_bottom: { svg: `<svg viewBox="0 0 120 210" xmlns="http://www.w3.org/2000/svg">
-  ${C(60,18,11)}${L(60,29,60,38,5)}${L(60,38,60,94,11)}${L(48,94,72,94,8)}
-  ${L(52,94,46,140,9)}${L(46,140,42,184,7)}${L(68,94,74,140,9)}${L(74,140,78,184,7)}
-  ${L(30,184,52,184,5)}${L(68,184,90,184,5)}
-  ${L(42,48,20,44,8)}${L(20,44,22,68,6)}
-  ${L(78,48,100,44,8)}${L(100,44,98,68,6)}
-  ${DBV(60,72)}
-</svg>` },
+overhead_ext_bottom: {svg: svg('0 0 120 210',H+T+L()+
+  seg(46,44,32,20,7)+seg(32,20,22,44,6)+
+  seg(74,44,88,20,7)+seg(88,20,98,44,6)+dbv(60,50))},
 
-}; // end POSES
-
-}();
+};}();
